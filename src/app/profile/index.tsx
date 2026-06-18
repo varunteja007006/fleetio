@@ -1,4 +1,6 @@
+import { api } from "@/convex/_generated/api";
 import { Ionicons } from "@expo/vector-icons";
+import { useQuery } from "convex/react";
 import { useRouter } from "expo-router";
 import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -49,7 +51,10 @@ function SettingsItem({
 
 export default function ProfileScreen() {
 	const router = useRouter();
+
 	const { data: session } = authClient.useSession();
+
+	const user = useQuery(api.auth.getCurrentUser);
 
 	const handleSignOut = async () => {
 		Alert.alert("Sign Out", "Are you sure you want to sign out?", [
@@ -59,11 +64,15 @@ export default function ProfileScreen() {
 				style: "destructive",
 				onPress: async () => {
 					await authClient.signOut();
-					router.replace("/auth");
+					router.push("/auth");
 				},
 			},
 		]);
 	};
+
+	if (!session?.user) {
+		return null;
+	}
 
 	return (
 		<SafeAreaView className="bg-background">
@@ -77,6 +86,7 @@ export default function ProfileScreen() {
 					</View>
 					<Text className="text-foreground text-2xl font-bold">
 						{session?.user?.name ?? "User"}
+						{user?.displayUsername}
 					</Text>
 					<Text className="text-muted-foreground mt-1 text-sm">
 						{session?.user?.email ??
@@ -86,7 +96,7 @@ export default function ProfileScreen() {
 				</View>
 
 				{/* Account Section */}
-				<View className="mb-6 px-6">
+				{/* <View className="mb-6 px-6">
 					<Text className="text-foreground mb-3 text-sm font-semibold uppercase">
 						Account
 					</Text>
@@ -109,10 +119,10 @@ export default function ProfileScreen() {
 						onPress={() => {}}
 						color="#f59e0b"
 					/>
-				</View>
+				</View> */}
 
 				{/* Preferences Section */}
-				<View className="mb-6 px-6">
+				{/* <View className="mb-6 px-6">
 					<Text className="text-foreground mb-3 text-sm font-semibold uppercase">
 						Preferences
 					</Text>
@@ -137,10 +147,10 @@ export default function ProfileScreen() {
 						onPress={() => {}}
 						color="#ec4899"
 					/>
-				</View>
+				</View> */}
 
 				{/* Support Section */}
-				<View className="mb-6 px-6">
+				{/* <View className="mb-6 px-6">
 					<Text className="text-foreground mb-3 text-sm font-semibold uppercase">
 						Support
 					</Text>
@@ -163,7 +173,7 @@ export default function ProfileScreen() {
 						onPress={() => {}}
 						color="#9ca3af"
 					/>
-				</View>
+				</View> */}
 
 				{/* Sign Out Button */}
 				<View className="px-6 pb-8">

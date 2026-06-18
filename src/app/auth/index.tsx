@@ -1,15 +1,15 @@
 import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  useColorScheme,
-  View,
+	ActivityIndicator,
+	KeyboardAvoidingView,
+	Platform,
+	Pressable,
+	ScrollView,
+	Text,
+	TextInput,
+	useColorScheme,
+	View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import z from "zod";
@@ -89,7 +89,7 @@ export default function AuthScreen() {
 
 		setStatus("Phone verified successfully!");
 		setTimeout(() => {
-			router.replace("/");
+			router.replace("/profile");
 		}, 500);
 	};
 

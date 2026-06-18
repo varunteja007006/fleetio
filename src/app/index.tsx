@@ -12,6 +12,7 @@ export default function Index() {
 				<Text key={_id}>{text}</Text>
 			))}
 			<Button title="Go to Auth" onPress={() => router.push("/auth")} />
+			<Button title="Go to Profile" onPress={() => router.push("/profile")} />
 		</View>
 	);
 }
