@@ -15,6 +15,9 @@ export const authComponent = createClient<DataModel>(components.betterAuth);
 export const createAuth = (ctx: GenericCtx<DataModel>) => {
 	return betterAuth({
 		trustedOrigins: ["your-scheme://"],
+		baseURL: {
+			allowedHosts: ["exp://*.*.*.*:8081", "*.*.convex.site"],
+		},
 		database: authComponent.adapter(ctx),
 		// Configure simple, non-verified email/password to get started
 		emailAndPassword: {
@@ -26,45 +29,64 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => {
 			expo(),
 			convex({ authConfig }),
 			phoneNumber({
-				sendOTP: ({ phoneNumber, code }, ctx) => {
+				sendOTP: async ({ phoneNumber, code }, ctx) => {
 					// Implement sending OTP code via SMS
-					// if (process.env.NODE_ENV === "production") {
-					// 	twilioClient.messages
-					// 		.create({
-					// 			body: `Your OTP is ${code}`,
-					// 			from: twilioFromPhoneNumber,
-					// 			to: phoneNumber,
-					// 		})
-					// 		.then((res) => {
-					// 			console.log("\n-----------OTP Triggered-------------", res);
-					// 		})
-					// 		.catch((err) => {
-					// 			console.error(
-					// 				"\nFAILED TO SEND OTP" + " " + "sendOTP function",
-					// 				err,
-					// 			);
-					// 		});
-					// 	return;
-					// }
+					if (process.env.NODE_ENV === "production") {
+						const accessToken = "";
 
-					console.log(`\n=======OTP:${code} - ${phoneNumber} =========\n`);
+						if (!accessToken) {
+							throw new Error(
+								"Missing SMS API configuration in Convex environment variables.",
+							);
+						}
+
+						// Clean phone number (Meta requires digits only, no '+' or spaces)
+						const cleanedPhone = phoneNumber.replace(/\D/g, "");
+
+						const url = `https://www.fast2sms.com/dev/bulkV2`;
+
+						try {
+							const response = await fetch(url, {
+								method: "POST",
+								headers: {
+									Authorization: `${accessToken}`,
+									"Content-Type": "application/json",
+								},
+								body: JSON.stringify({
+									route: "q",
+									message: `Your OTP code is: ${code}`,
+									schedule_time: null,
+									numbers: cleanedPhone,
+								}),
+							});
+
+							const data = await response.json();
+
+							if (!response.ok) {
+								console.error("Error sending SMS _1: ", data);
+								throw new Error(data.error?.message || "Error sending SMS _2");
+							}
+						} catch (error) {
+							console.error("Error sending SMS _3:", error);
+						}
+					}
+
+					console.log(`SENT OTP: ${code} to ${phoneNumber}`);
 				},
 				signUpOnVerification: {
 					getTempEmail: (phoneNumber) => {
 						return `${phoneNumber}@${process.env.EXPO_PUBLIC_EMAIL_DOMAIN}`;
 					},
 
-					//optionally, you can also pass `getTempName` function to generate a temporary name for the user
 					getTempName: (phoneNumber) => {
-						return phoneNumber; //by default, it will use the phone number as the name
+						return phoneNumber;
 					},
 				},
 			}),
 		],
 	});
 };
-// Example function for getting the current user
-// Feel free to edit, omit, etc.
+
 export const getCurrentUser = query({
 	args: {},
 	handler: async (ctx) => {
