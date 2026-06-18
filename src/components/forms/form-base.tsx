@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Text } from "react-native";
 
-import { useFieldContext } from "./hooks";
+import { useFieldContext } from "./contexts";
 
 export interface FormControlProps {
   label: string;

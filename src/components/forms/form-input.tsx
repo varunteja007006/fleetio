@@ -1,8 +1,8 @@
 import { TextInput } from "react-native";
 
 import type { FormControlProps } from "./form-base";
+import { useFieldContext } from "./contexts";
 import { FormBase } from "./form-base";
-import { useFieldContext } from "./hooks";
 
 export function FormInput({
   keyboardType,
