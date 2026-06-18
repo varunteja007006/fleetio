@@ -1,14 +1,17 @@
 import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
-import { StyleSheet, Text, View } from "react-native";
+import { useRouter } from "expo-router";
+import { Button, StyleSheet, Text, View } from "react-native";
 
 export default function Index() {
 	const tasks = useQuery(api.tasks.get);
+	const router = useRouter();
 	return (
 		<View style={styles.container}>
 			{tasks?.map(({ _id, text }) => (
 				<Text key={_id}>{text}</Text>
 			))}
+			<Button title="Go to Auth" onPress={() => router.push("/auth")} />
 		</View>
 	);
 }

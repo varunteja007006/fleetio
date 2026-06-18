@@ -1,7 +1,7 @@
-import { authClient } from "@/src/lib/auth-client";
 import { ConvexProviderWithAuth, ConvexReactClient } from "convex/react";
 import { Stack } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { authClient } from "~/lib/auth-client";
 
 type SessionLike = { id?: string | null };
 type SessionWithNested = { session?: SessionLike | null };
@@ -28,7 +28,8 @@ const convex = new ConvexReactClient(process.env.EXPO_PUBLIC_CONVEX_URL!, {
 });
 
 function useAuthFromBetterAuth() {
-	const { data: session, isPending: isSessionPending } = authClient.useSession();
+	const { data: session, isPending: isSessionPending } =
+		authClient.useSession();
 	const normalizedSession = getNormalizedSession(session);
 	const sessionId = normalizedSession?.id ?? null;
 	const [cachedToken, setCachedToken] = useState<string | null>(null);
