@@ -1,5 +1,5 @@
 import { api } from "@/convex/_generated/api";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@react-native-vector-icons/ionicons";
 import { useQuery } from "convex/react";
 import { useRouter } from "expo-router";
 import { Alert, Pressable, ScrollView, Text, View } from "react-native";
@@ -54,7 +54,7 @@ export default function ProfileScreen() {
 
 	const { data: session } = authClient.useSession();
 
-	const user = useQuery(api.auth.getCurrentUser);
+	const userProfile = useQuery(api.profile.getUserProfile);
 
 	const handleSignOut = async () => {
 		Alert.alert("Sign Out", "Are you sure you want to sign out?", [
@@ -81,17 +81,23 @@ export default function ProfileScreen() {
 				<View className="mb-6 items-center px-6 py-8">
 					<View className="bg-primary mb-4 h-24 w-24 items-center justify-center rounded-full">
 						<Text className="text-primary-foreground text-4xl font-bold">
-							{session?.user?.name?.[0]?.toUpperCase() ?? "U"}
+							{session.user.name?.[0]?.toUpperCase() ?? ""}
 						</Text>
 					</View>
 					<Text className="text-foreground text-2xl font-bold">
-						{session?.user?.name ?? "User"}
-						{user?.displayUsername}
+						{session.user.name ?? ""}
 					</Text>
 					<Text className="text-muted-foreground mt-1 text-sm">
-						{session?.user?.email ??
-							session?.user?.phoneNumber ??
-							"Not available"}
+						{session.user.email}
+					</Text>
+					<Text className="text-muted-foreground mt-1 text-sm">
+						{session.user.phoneNumber}
+					</Text>
+					<Text className="text-muted-foreground mt-1 text-sm">
+						{userProfile?.role}
+					</Text>
+					<Text className="text-muted-foreground mt-1 text-sm">
+						{userProfile?.status}
 					</Text>
 				</View>
 
