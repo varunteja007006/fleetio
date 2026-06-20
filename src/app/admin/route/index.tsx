@@ -1,7 +1,7 @@
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useMutation, useQuery } from "convex/react";
-import { useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
 import {
 	ActivityIndicator,
@@ -38,7 +38,7 @@ export default function RouteAdminListScreen() {
 			description: "",
 		},
 		validators: { onSubmit: createRouteSchema },
-			onSubmit: async ({ value }) => {
+		onSubmit: async ({ value }) => {
 			setIsSubmitting(true);
 			try {
 				const description = value.description.trim();
@@ -88,7 +88,8 @@ export default function RouteAdminListScreen() {
 	};
 
 	return (
-		<SafeAreaView className="bg-background flex-1">
+		<SafeAreaView className="flex-1">
+			<Stack.Screen options={{ headerShown: false }} />
 			<ScrollView
 				className="px-6 py-6"
 				contentContainerStyle={{ paddingBottom: 40 }}

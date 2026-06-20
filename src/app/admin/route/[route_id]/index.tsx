@@ -29,10 +29,7 @@ export default function RouteAdminDetailScreen() {
 		: params.route_id;
 	const routeId = routeIdParam as Id<"routes"> | undefined;
 
-	const route = useQuery(
-		api.routes.getById,
-		routeId ? { routeId } : "skip",
-	);
+	const route = useQuery(api.routes.getById, routeId ? { routeId } : "skip");
 	const updateRoute = useMutation(api.routes.update);
 	const deleteRoute = useMutation(api.routes.remove);
 
@@ -111,7 +108,7 @@ export default function RouteAdminDetailScreen() {
 
 	if (!routeId) {
 		return (
-			<SafeAreaView className="bg-background flex-1 items-center justify-center px-6">
+			<SafeAreaView className=" flex-1 items-center justify-center px-6">
 				<Text className="text-foreground text-center text-base">
 					Invalid route id.
 				</Text>
@@ -121,7 +118,7 @@ export default function RouteAdminDetailScreen() {
 
 	if (route === undefined) {
 		return (
-			<SafeAreaView className="bg-background flex-1 items-center justify-center">
+			<SafeAreaView className=" flex-1 items-center justify-center">
 				<ActivityIndicator />
 			</SafeAreaView>
 		);
@@ -129,7 +126,7 @@ export default function RouteAdminDetailScreen() {
 
 	if (!route || route.isDeleted) {
 		return (
-			<SafeAreaView className="bg-background flex-1 items-center justify-center px-6">
+			<SafeAreaView className=" flex-1 items-center justify-center px-6">
 				<Text className="text-foreground text-center text-base">
 					Route not found.
 				</Text>
@@ -138,7 +135,7 @@ export default function RouteAdminDetailScreen() {
 	}
 
 	return (
-		<SafeAreaView className="bg-background flex-1">
+		<SafeAreaView className=" flex-1">
 			<Stack.Screen options={{ title: "Edit Route" }} />
 			<ScrollView
 				className="px-6 py-6"
