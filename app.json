@@ -36,7 +36,21 @@
 				}
 			],
 			"expo-secure-store",
-			"@react-native-vector-icons/lucide"
+			"@react-native-vector-icons/lucide",
+			[
+				"expo-font",
+				[
+					"./assets/fonts/Lexend-Black.ttf",
+					"./assets/fonts/Lexend-Bold.ttf",
+					"./assets/fonts/Lexend-ExtraBold.ttf",
+					"./assets/fonts/Lexend-ExtraLight.ttf",
+					"./assets/fonts/Lexend-Light.ttf",
+					"./assets/fonts/Lexend-Medium.ttf",
+					"./assets/fonts/Lexend-Regular.ttf",
+					"./assets/fonts/Lexend-Semibold.ttf",
+					"./assets/fonts/Lexend-Thin.ttf"
+				]
+			]
 		],
 		"experiments": {
 			"typedRoutes": true,
