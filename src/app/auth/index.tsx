@@ -8,7 +8,6 @@ import {
 	ScrollView,
 	Text,
 	TextInput,
-	useColorScheme,
 	View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -27,9 +26,6 @@ const schema = z.object({
 });
 
 export default function AuthScreen() {
-	const colorScheme = useColorScheme();
-	const isDark = colorScheme === "dark";
-
 	const router = useRouter();
 
 	const form = useAppForm({
@@ -89,8 +85,8 @@ export default function AuthScreen() {
 
 		setStatus("Phone verified successfully!");
 		setTimeout(() => {
-			router.replace("/profile");
-		}, 500);
+			router.replace("/dashboard");
+		}, 1000);
 	};
 
 	const handleResendOtp = () => {
@@ -116,22 +112,18 @@ export default function AuthScreen() {
 				>
 					{/* Header */}
 					<View className="mb-8">
-						<Text className="text-foreground mb-2 text-3xl font-bold">
-							Welcome to Fleetio
-						</Text>
-						<Text className="text-muted-foreground text-base">
-							Sign in with your phone number
-						</Text>
+						<Text className="mb-2 text-3xl font-bold">Welcome to Fleetio</Text>
+						<Text className="text-base">Sign in with your phone number</Text>
 					</View>
 
 					{/* Phone number and OTP input */}
 					{otpSent ? (
 						<View className="mb-4">
-							<Text className="text-foreground mb-2 text-sm font-medium">
+							<Text className="mb-2 text-sm font-medium">
 								Verification Code
 							</Text>
 							<TextInput
-								className="bg-card text-foreground border-border rounded-lg border px-8 py-3 text-base"
+								className="rounded-lg border px-8 py-3 text-base"
 								placeholder="Enter 6-digit code"
 								placeholderTextColor="#71717A"
 								value={otp}
@@ -189,12 +181,12 @@ export default function AuthScreen() {
 							<Pressable
 								onPress={handleVerifyOtp}
 								disabled={isLoading}
-								className={`bg-primary mb-3 rounded-lg py-4 ${isLoading ? "opacity-50" : "active:opacity-80"}`}
+								className={`mb-3 rounded-lg py-4 ${isLoading ? "opacity-50" : "active:opacity-80"}`}
 							>
 								{isLoading ? (
 									<ActivityIndicator color="#FFFFFF" />
 								) : (
-									<Text className="text-primary-foreground text-center text-base font-semibold">
+									<Text className="text-center text-base font-semibold">
 										Verify OTP
 									</Text>
 								)}
@@ -205,7 +197,7 @@ export default function AuthScreen() {
 								disabled={isLoading}
 								className="active:opacity-70"
 							>
-								<Text className="text-primary text-center text-sm font-medium">
+								<Text className="text-center text-sm font-medium">
 									Resend OTP
 								</Text>
 							</Pressable>
@@ -214,12 +206,12 @@ export default function AuthScreen() {
 						<Pressable
 							onPress={async () => form.handleSubmit()}
 							disabled={isLoading}
-							className={`bg-primary rounded-lg py-4 ${isLoading ? "opacity-50" : "active:opacity-80"}`}
+							className={`rounded-lg py-4 ${isLoading ? "opacity-50" : "active:opacity-80"}`}
 						>
 							{isLoading ? (
 								<ActivityIndicator color="#FFFFFF" />
 							) : (
-								<Text className="text-primary-foreground text-center text-base font-semibold">
+								<Text className="text-center text-base font-semibold">
 									Send OTP
 								</Text>
 							)}
@@ -228,7 +220,7 @@ export default function AuthScreen() {
 
 					{/* Footer */}
 					<View className="mt-8">
-						<Text className="text-muted-foreground text-center text-xs will-change-variable">
+						<Text className="text-center text-xs will-change-variable">
 							By continuing, you agree to our Terms of Service and Privacy
 							Policy
 						</Text>

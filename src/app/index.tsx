@@ -1,7 +1,7 @@
 import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
 import { Stack, useRouter } from "expo-router";
-import { Button, Text, View } from "react-native";
+import { Button, Pressable, Text, View } from "react-native";
 import { authClient } from "../lib/auth-client";
 
 export default function Index() {
@@ -15,10 +15,11 @@ export default function Index() {
 		if (session?.session) {
 			return (
 				<View className="flex flex-col gap-4">
-					<Button
-						title="Go to Profile"
-						onPress={() => router.push("/profile")}
-					/>
+					<Pressable onPress={() => router.push("/dashboard")}>
+						<Text className="text-lg font-semibold text-center p-4 border rounded-lg">
+							Go to Dashboard
+						</Text>
+					</Pressable>
 					{isAdmin && (
 						<>
 							<Button
@@ -42,9 +43,7 @@ export default function Index() {
 		<>
 			<Stack.Screen options={{ headerShown: false }} />
 			<View className={"flex-1 justify-center items-center gap-10"}>
-				<Text className="text-3xl font-bold text-blue-500">
-					Welcome to Fleetio!
-				</Text>
+				<Text className="text-3xl font-bold ">Welcome to Fleetio!</Text>
 				{renderContent()}
 			</View>
 		</>

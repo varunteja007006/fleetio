@@ -30,6 +30,8 @@ export const authComponent: ReturnType<typeof createClient<DataModel>> =
 
 					await ctx.db.insert("profiles", {
 						authUserId: user._id,
+						phoneNumber: user.phoneNumber ?? undefined,
+						email: user.email,
 						role: "new_user",
 						status: "pending",
 						isDeleted: false,
@@ -104,7 +106,7 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => {
 				},
 				signUpOnVerification: {
 					getTempEmail: (phoneNumber) => {
-						return `${phoneNumber}@${process.env.EXPO_PUBLIC_EMAIL_DOMAIN}`;
+						return `${phoneNumber}@${process.env.EMAIL_DOMAIN}`;
 					},
 
 					getTempName: (phoneNumber) => {
