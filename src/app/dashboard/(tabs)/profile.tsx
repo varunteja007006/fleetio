@@ -181,11 +181,11 @@ export default function ProfileScreen() {
 				<View className="mb-20">
 					<Pressable
 						onPress={handleSignOut}
-						className="bg-red-200 border-red-600 border rounded-xl py-4 active:opacity-70"
+						className="bg-destructive border-red-600 border rounded-xl py-4 active:opacity-70"
 					>
 						<View className="flex-row items-center justify-center">
-							<Luicide name="log-out" size={20} />
-							<Text className="text-destructive-foreground ml-2 text-base font-semibold">
+							<Luicide name="log-out" size={20} color={"#fff"} />
+							<Text className="ml-2 text-destructive-foreground text-base font-semibold">
 								Sign Out
 							</Text>
 						</View>
