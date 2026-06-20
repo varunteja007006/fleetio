@@ -1,3 +1,4 @@
+import "@/global.css";
 import { ConvexProviderWithAuth, ConvexReactClient } from "convex/react";
 import { Stack } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -82,7 +83,7 @@ export default function RootLayout() {
 	return (
 		<ConvexProviderWithAuth client={convex} useAuth={useAuthFromBetterAuth}>
 			<Stack>
-				<Stack.Screen name="index" />
+				<Stack.Screen name="index" options={{ title: "Home" }} />
 			</Stack>
 		</ConvexProviderWithAuth>
 	);

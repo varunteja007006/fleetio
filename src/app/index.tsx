@@ -1,58 +1,52 @@
 import { api } from "@/convex/_generated/api";
-import { Button, Column, Host } from "@expo/ui";
 import { useQuery } from "convex/react";
-import { useRouter } from "expo-router";
-import { StyleSheet } from "react-native";
+import { Stack, useRouter } from "expo-router";
+import { Button, Text, View } from "react-native";
+import { authClient } from "../lib/auth-client";
 
 export default function Index() {
-	const isAdmin = useQuery(api.profile.getIsAdminProfile);
-	const router = useRouter();
-	return (
-		// <View style={styles.container}>
-		// 	<Button  />
-		// 	<Button title="Go to Profile" onPress={() => router.push("/profile")} />
-		// 	<Button
-		// 		title="Go to Admin Route"
-		// 		onPress={() => router.push("/admin/route")}
-		// 	/>
-		// </View>
-		<Host matchContents>
-			<Column spacing={8}>
-				<Button
-					variant="filled"
-					label="Go to Auth"
-					onPress={() => router.push("/auth")}
-				/>
+	const { data: session } = authClient.useSession();
 
-				<Button
-					variant="outlined"
-					label="Go to Profile"
-					onPress={() => router.push("/profile")}
-				/>
-				{isAdmin && (
-					<>
-						<Button
-							variant="text"
-							label="Go to Admin Route"
-							onPress={() => router.push("/admin/route")}
-						/>
-						<Button
-							variant="filled"
-							label="Go to Admin Users"
-							onPress={() => router.push("/admin/users")}
-						/>
-					</>
-				)}
-			</Column>
-		</Host>
+	const isAdmin = useQuery(api.profile.getIsAdminProfile);
+
+	const router = useRouter();
+
+	const renderContent = () => {
+		if (session?.session) {
+			return (
+				<View className="flex flex-col gap-4">
+					<Button
+						title="Go to Profile"
+						onPress={() => router.push("/profile")}
+					/>
+					{isAdmin && (
+						<>
+							<Button
+								title="Go to Admin Route"
+								onPress={() => router.push("/admin/route")}
+							/>
+							<Button
+								title="Go to Admin Users"
+								onPress={() => router.push("/admin/users")}
+							/>
+						</>
+					)}
+				</View>
+			);
+		}
+
+		return <Button title="Go to Auth" onPress={() => router.push("/auth")} />;
+	};
+
+	return (
+		<>
+			<Stack.Screen options={{ headerShown: false }} />
+			<View className={"flex-1 justify-center items-center gap-10"}>
+				<Text className="text-3xl font-bold text-blue-500">
+					Welcome to Fleetio!
+				</Text>
+				{renderContent()}
+			</View>
+		</>
 	);
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		justifyContent: "center",
-		alignItems: "center",
-		gap: 10,
-	},
-});

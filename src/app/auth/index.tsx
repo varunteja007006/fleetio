@@ -100,9 +100,7 @@ export default function AuthScreen() {
 	};
 
 	return (
-		<SafeAreaView
-			style={{ backgroundColor: isDark ? "#dbdbdb" : "#ffffff", flex: 1 }}
-		>
+		<SafeAreaView>
 			<Stack.Screen options={{ headerShown: false }} />
 			<KeyboardAvoidingView
 				behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -114,6 +112,7 @@ export default function AuthScreen() {
 						padding: 24,
 					}}
 					keyboardShouldPersistTaps="handled"
+					className="h-full"
 				>
 					{/* Header */}
 					<View className="mb-8">
@@ -121,14 +120,28 @@ export default function AuthScreen() {
 							Welcome to Fleetio
 						</Text>
 						<Text className="text-muted-foreground text-base">
-							{otpSent
-								? "Enter the OTP sent to your phone"
-								: "Sign in with your phone number"}
+							Sign in with your phone number
 						</Text>
 					</View>
 
-					{/* Phone Input */}
-					{!otpSent && (
+					{/* Phone number and OTP input */}
+					{otpSent ? (
+						<View className="mb-4">
+							<Text className="text-foreground mb-2 text-sm font-medium">
+								Verification Code
+							</Text>
+							<TextInput
+								className="bg-card text-foreground border-border rounded-lg border px-8 py-3 text-base"
+								placeholder="Enter 6-digit code"
+								placeholderTextColor="#71717A"
+								value={otp}
+								onChangeText={setOtp}
+								keyboardType="number-pad"
+								maxLength={6}
+								editable={!isLoading}
+							/>
+						</View>
+					) : (
 						<View className="mb-4">
 							<form.AppField name="phone">
 								{(field) => (
@@ -142,25 +155,6 @@ export default function AuthScreen() {
 									/>
 								)}
 							</form.AppField>
-						</View>
-					)}
-
-					{/* OTP Input */}
-					{otpSent && (
-						<View className="mb-4">
-							<Text className="text-foreground mb-2 text-sm font-medium">
-								Verification Code
-							</Text>
-							<TextInput
-								className="bg-card text-foreground border-border rounded-lg border px-4 py-3 text-base"
-								placeholder="Enter 6-digit code"
-								placeholderTextColor="#71717A"
-								value={otp}
-								onChangeText={setOtp}
-								keyboardType="number-pad"
-								maxLength={6}
-								editable={!isLoading}
-							/>
 						</View>
 					)}
 
@@ -190,21 +184,7 @@ export default function AuthScreen() {
 					)}
 
 					{/* Action Button */}
-					{!otpSent ? (
-						<Pressable
-							onPress={async () => form.handleSubmit()}
-							disabled={isLoading}
-							className={`bg-primary rounded-lg py-4 ${isLoading ? "opacity-50" : "active:opacity-80"}`}
-						>
-							{isLoading ? (
-								<ActivityIndicator color="#FFFFFF" />
-							) : (
-								<Text className="text-primary-foreground text-center text-base font-semibold">
-									Send OTP
-								</Text>
-							)}
-						</Pressable>
-					) : (
+					{otpSent ? (
 						<>
 							<Pressable
 								onPress={handleVerifyOtp}
@@ -230,11 +210,25 @@ export default function AuthScreen() {
 								</Text>
 							</Pressable>
 						</>
+					) : (
+						<Pressable
+							onPress={async () => form.handleSubmit()}
+							disabled={isLoading}
+							className={`bg-primary rounded-lg py-4 ${isLoading ? "opacity-50" : "active:opacity-80"}`}
+						>
+							{isLoading ? (
+								<ActivityIndicator color="#FFFFFF" />
+							) : (
+								<Text className="text-primary-foreground text-center text-base font-semibold">
+									Send OTP
+								</Text>
+							)}
+						</Pressable>
 					)}
 
 					{/* Footer */}
 					<View className="mt-8">
-						<Text className="text-muted-foreground text-center text-xs">
+						<Text className="text-muted-foreground text-center text-xs will-change-variable">
 							By continuing, you agree to our Terms of Service and Privacy
 							Policy
 						</Text>
