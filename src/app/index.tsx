@@ -27,7 +27,7 @@ export default function Index() {
 					{isAdmin && (
 						<Pressable
 							onPress={() => router.push("/admin")}
-							className="bg-secondary rounded-lg px-5 py-3"
+							className="px-5 py-3"
 						>
 							<Text className="text-secondary-foreground text-center font-semibold">
 								Go to Admin Dashboard

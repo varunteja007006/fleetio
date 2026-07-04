@@ -112,3 +112,10 @@ export const remove = mutation({
 		return args.routeId;
 	},
 });
+
+export const routesStats = query({
+	args: {},
+	handler: async (ctx, _args) => {
+		return { totalRoutes: (await ctx.db.query("routes").collect()).length };
+	},
+});
