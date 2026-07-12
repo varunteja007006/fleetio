@@ -11,6 +11,7 @@
 import type * as auth from "../auth.js";
 import type * as checkpoints from "../checkpoints.js";
 import type * as http from "../http.js";
+import type * as otp from "../otp.js";
 import type * as profile from "../profile.js";
 import type * as routeAssignments from "../routeAssignments.js";
 import type * as routes from "../routes.js";
@@ -25,6 +26,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   checkpoints: typeof checkpoints;
   http: typeof http;
+  otp: typeof otp;
   profile: typeof profile;
   routeAssignments: typeof routeAssignments;
   routes: typeof routes;

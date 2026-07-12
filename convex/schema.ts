@@ -136,4 +136,9 @@ export default defineSchema({
 
 		whatsappGroupId: v.id("whatsappGroups"),
 	}),
+
+	otpCodes: defineTable({
+		phoneNumber: v.string(),
+		code: v.string(),
+	}).index("by_phoneNumber", ["phoneNumber"]),
 });

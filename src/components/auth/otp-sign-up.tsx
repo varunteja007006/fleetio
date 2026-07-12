@@ -1,3 +1,4 @@
+import { api } from "@/convex/_generated/api";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -10,6 +11,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { useQuery } from "convex/react";
 import z from "zod";
 
 import { useAppForm } from "~/components/forms/hooks";
@@ -50,7 +52,7 @@ export default function OtpSignUp() {
 			}
 
 			setOtpSent(true);
-			setStatus("OTP sent successfully! Check your phone.");
+			setStatus("OTP sent successfully");
 		},
 	});
 
@@ -60,6 +62,12 @@ export default function OtpSignUp() {
 	const [otpSent, setOtpSent] = useState(false);
 	const [status, setStatus] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
+
+	const fullPhone = countryCode + phone;
+	const otpData = useQuery(
+		api.otp.getOtpByPhone,
+		otpSent && fullPhone.length > 0 ? { phoneNumber: fullPhone } : "skip",
+	);
 
 	const handleVerifyOtp = async () => {
 		if (!otp || otp.length < 4) {
@@ -166,6 +174,20 @@ export default function OtpSignUp() {
 							}`}
 						>
 							{status}
+						</Text>
+					</View>
+				)}
+
+				{otpData && (
+					<View className="mb-4 rounded-lg border-2 border-dashed border-yellow-500 bg-yellow-500/10 p-4">
+						<Text className="mb-1 text-center text-sm font-medium text-yellow-600">
+							Dev OTP (copy this)
+						</Text>
+						<Text
+							className="text-center text-3xl font-bold tracking-widest text-yellow-600"
+							selectable
+						>
+							{otpData.code}
 						</Text>
 					</View>
 				)}

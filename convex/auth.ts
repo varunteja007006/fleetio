@@ -3,6 +3,7 @@ import { createClient, type GenericCtx } from "@convex-dev/better-auth";
 import { convex } from "@convex-dev/better-auth/plugins";
 import { betterAuth } from "better-auth/minimal";
 import { phoneNumber } from "better-auth/plugins";
+import type { GenericActionCtx } from "convex/server";
 import { components, internal } from "./_generated/api";
 import { DataModel } from "./_generated/dataModel";
 import { query } from "./_generated/server";
@@ -60,47 +61,12 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => {
 			expo(),
 			convex({ authConfig }),
 			phoneNumber({
-				sendOTP: async ({ phoneNumber, code }, ctx) => {
-					// Implement sending OTP code via SMS
-					// if (process.env.NODE_ENV === "production") {
-					// 	const accessToken = "";
-
-					// 	if (!accessToken) {
-					// 		throw new Error(
-					// 			"Missing SMS API configuration in Convex environment variables.",
-					// 		);
-					// 	}
-
-					// 	// Clean phone number (Meta requires digits only, no '+' or spaces)
-					// 	const cleanedPhone = phoneNumber.replace(/\D/g, "");
-
-					// 	const url = `https://www.fast2sms.com/dev/bulkV2`;
-
-					// 	try {
-					// 		const response = await fetch(url, {
-					// 			method: "POST",
-					// 			headers: {
-					// 				Authorization: `${accessToken}`,
-					// 				"Content-Type": "application/json",
-					// 			},
-					// 			body: JSON.stringify({
-					// 				route: "q",
-					// 				message: `Your OTP code is: ${code}`,
-					// 				schedule_time: null,
-					// 				numbers: cleanedPhone,
-					// 			}),
-					// 		});
-
-					// 		const data = await response.json();
-
-					// 		if (!response.ok) {
-					// 			console.error("Error sending SMS _1: ", data);
-					// 			throw new Error(data.error?.message || "Error sending SMS _2");
-					// 		}
-					// 	} catch (error) {
-					// 		console.error("Error sending SMS _3:", error);
-					// 	}
-					// }
+				sendOTP: async ({ phoneNumber, code }, _request) => {
+					const actionCtx = ctx as GenericActionCtx<DataModel>;
+					await actionCtx.runMutation(internal.otp.storeOtp, {
+						phoneNumber,
+						code,
+					});
 
 					console.log(`SENT OTP: ${code} to ${phoneNumber}`);
 				},
