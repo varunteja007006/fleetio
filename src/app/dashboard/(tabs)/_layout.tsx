@@ -1,7 +1,23 @@
 import { Lucide } from "@react-native-vector-icons/lucide";
 import { Stack, Tabs } from "expo-router";
+import { ActivityIndicator, View } from "react-native";
+import { useAuthGuard } from "~/hooks/use-auth-guard";
 
 const TabLayout = () => {
+	const { isLoading, isAuthenticated } = useAuthGuard();
+
+	if (isLoading) {
+		return (
+			<View className="flex-1 items-center justify-center">
+				<ActivityIndicator size="large" />
+			</View>
+		);
+	}
+
+	if (!isAuthenticated) {
+		return null;
+	}
+
 	return (
 		<>
 			<Stack.Screen options={{ headerShown: false }} />

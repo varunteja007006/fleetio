@@ -1,4 +1,5 @@
 import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import { useMutation, useQuery } from "convex/react";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
@@ -12,19 +13,13 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const STATUS_BADGE: Record<
-	string,
-	{ bg: string; text: string }
-> = {
+const STATUS_BADGE: Record<string, { bg: string; text: string }> = {
 	approved: { bg: "bg-green-500/10", text: "text-green-600" },
 	pending: { bg: "bg-amber-500/10", text: "text-amber-600" },
 	rejected: { bg: "bg-red-500/10", text: "text-red-600" },
 };
 
-const ROLE_BADGE: Record<
-	string,
-	{ bg: string; text: string }
-> = {
+const ROLE_BADGE: Record<string, { bg: string; text: string }> = {
 	admin: { bg: "bg-primary/10", text: "text-primary" },
 	manager: { bg: "bg-secondary", text: "text-secondary-foreground" },
 	driver: { bg: "bg-muted", text: "text-muted-foreground" },
@@ -69,7 +64,7 @@ export default function AdminUserDetailScreen() {
 
 	const profile = useQuery(
 		api.profile.getUserProfileById,
-		userId ? { id: userId } : "skip",
+		userId ? { id: userId as Id<"profiles"> } : "skip",
 	);
 	const updateUserStatus = useMutation(api.profile.updateUserStatus);
 	const updateUserRole = useMutation(api.profile.updateUserRole);
@@ -168,7 +163,7 @@ export default function AdminUserDetailScreen() {
 
 	return (
 		<SafeAreaView className="flex-1">
-			<Stack.Screen options={{ title: userName }} />
+			<Stack.Screen options={{ title: userName, headerShown: false }} />
 
 			<ScrollView
 				className="px-6 py-6"
@@ -244,8 +239,7 @@ export default function AdminUserDetailScreen() {
 					{profile.status === "pending" ? (
 						<>
 							<Text className="text-muted-foreground mb-3 text-sm">
-								This user is pending approval. Approve or reject their
-								account.
+								This user is pending approval. Approve or reject their account.
 							</Text>
 
 							<View className="flex-row gap-3">
@@ -289,8 +283,8 @@ export default function AdminUserDetailScreen() {
 					) : (
 						<Text className="text-muted-foreground mb-3 text-sm">
 							This user has been{" "}
-							<Text className="capitalize">{profile.status}</Text>.
-							Change their role below if needed.
+							<Text className="capitalize">{profile.status}</Text>. Change their
+							role below if needed.
 						</Text>
 					)}
 
@@ -310,9 +304,7 @@ export default function AdminUserDetailScreen() {
 										onPress={() => handleRoleChange(role)}
 										disabled={isUpdatingRole || isActive}
 										className={`rounded-lg px-4 py-2 ${
-											isActive
-												? "bg-primary"
-												: "bg-muted active:opacity-80"
+											isActive ? "bg-primary" : "bg-muted active:opacity-80"
 										}`}
 									>
 										{isLoading ? (

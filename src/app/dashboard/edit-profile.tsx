@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import z from "zod";
 import { useAppForm } from "~/components/forms/hooks";
+import { useAuthGuard } from "~/hooks/use-auth-guard";
 
 const editProfileSchema = z.object({
 	firstName: z.string(),
@@ -26,8 +27,17 @@ const editProfileSchema = z.object({
 
 export default function EditProfileScreen() {
 	const router = useRouter();
+	const { isLoading: isAuthLoading } = useAuthGuard();
 	const profile = useQuery(api.profile.getUserProfile);
 	const updateProfile = useMutation(api.profile.updateProfile);
+
+	if (isAuthLoading) {
+		return (
+			<SafeAreaView className="flex-1 items-center justify-center">
+				<ActivityIndicator size="large" />
+			</SafeAreaView>
+		);
+	}
 
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
