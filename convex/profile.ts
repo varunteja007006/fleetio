@@ -204,3 +204,28 @@ export const getPendingProfiles = query({
 	},
 });
 
+export const getDrivers = query({
+	args: {},
+	handler: async (ctx, _args) => {
+		const user = await authComponent.getAuthUser(ctx);
+
+		const callerProfile = await ctx.db
+			.query("profiles")
+			.withIndex("by_auth_user", (q) => q.eq("authUserId", user._id))
+			.first();
+
+		if (!callerProfile || callerProfile.role !== "admin") {
+			throw new Error("Unauthorized");
+		}
+
+		const profiles = await ctx.db
+			.query("profiles")
+			.withIndex("by_status_and_role", (q) =>
+				q.eq("status", "approved").eq("role", "driver"),
+			)
+			.take(100);
+
+		return profiles;
+	},
+});
+

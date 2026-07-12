@@ -16,14 +16,22 @@ const Dashboard = () => {
 	const router = useRouter();
 	const userProfile = useQuery(api.profile.getUserProfile);
 	const routeStats = useQuery(api.routes.routesStats);
-	const routes = useQuery(api.routes.list, {});
+	const allRoutes = useQuery(api.routes.list, {});
+	const assignments = useQuery(api.routeAssignments.listByDriver);
 
-	const totalRoutes = routeStats?.totalRoutes ?? 0;
-	const routeCount = routes?.length ?? 0;
+	const role = userProfile?.role ?? "";
+	const isAdminOrManager = role === "admin" || role === "manager";
+
+	const totalRoutes = isAdminOrManager
+		? (routeStats?.totalRoutes ?? 0)
+		: (assignments?.length ?? 0);
+	const rawRoutes = isAdminOrManager ? allRoutes : assignments;
+	const routeCount = isAdminOrManager
+		? (allRoutes?.length ?? 0)
+		: (assignments?.filter((a) => a.active)?.length ?? 0);
 	const firstName = userProfile?.firstName ?? "";
 	const lastName = userProfile?.lastName ?? "";
 	const displayName = firstName ? `${firstName} ${lastName}`.trim() : "there";
-	const role = userProfile?.role ?? "";
 	const roleLabel = role === "new_user" ? "NEW" : role.toUpperCase();
 	const initial = displayName === "there" ? "?" : displayName[0].toUpperCase();
 	const noFirstName = !firstName;
@@ -129,7 +137,7 @@ const Dashboard = () => {
 						</View>
 					</View>
 
-					{routes && routes.length > 0 && (
+					{rawRoutes && rawRoutes.length > 0 && (
 						<View className="mt-8 px-6">
 							<View className="mb-4 flex-row items-center justify-between">
 								<Text className="text-foreground text-lg font-semibold">
@@ -142,35 +150,40 @@ const Dashboard = () => {
 									See all
 								</Link>
 							</View>
-							{routes.slice(0, 5).map((route) => (
-								<Pressable
-									key={route._id}
-									onPress={() => router.push("/dashboard/(tabs)/routes")}
-									className="mb-2 flex-row items-center rounded-2xl border border-border bg-card px-4 py-4 shadow-sm active:opacity-70"
-								>
-									<View className="mr-4 h-10 w-10 items-center justify-center rounded-xl bg-primary/15">
-										<Lucide name="map-pin" size={18} color="#f59e0b" />
-									</View>
-									<View className="flex-1 gap-0.5">
-										<Text className="text-foreground text-base font-medium">
-											{route.name}
-										</Text>
-										{route.description && (
-											<Text
-												className="text-muted-foreground text-sm"
-												numberOfLines={1}
-											>
-												{route.description}
+							{rawRoutes.slice(0, 5).map((item) => {
+								const route = isAdminOrManager
+									? item
+									: (item as any).route;
+								return (
+									<Pressable
+										key={item._id}
+										onPress={() => router.push("/dashboard/(tabs)/routes")}
+										className="mb-2 flex-row items-center rounded-2xl border border-border bg-card px-4 py-4 shadow-sm active:opacity-70"
+									>
+										<View className="mr-4 h-10 w-10 items-center justify-center rounded-xl bg-primary/15">
+											<Lucide name="map-pin" size={18} color="#f59e0b" />
+										</View>
+										<View className="flex-1 gap-0.5">
+											<Text className="text-foreground text-base font-medium">
+												{route?.name ?? "Unknown route"}
 											</Text>
-										)}
-									</View>
-									<Lucide name="chevron-right" size={18} color="#9ca3af" />
-								</Pressable>
-							))}
+											{route?.description && (
+												<Text
+													className="text-muted-foreground text-sm"
+													numberOfLines={1}
+												>
+													{route.description}
+												</Text>
+											)}
+										</View>
+										<Lucide name="chevron-right" size={18} color="#9ca3af" />
+									</Pressable>
+								);
+							})}
 						</View>
 					)}
 
-					{routes && routes.length === 0 && (
+					{rawRoutes && rawRoutes.length === 0 && (
 						<View className="mx-6 mt-8 items-center rounded-2xl border border-dashed border-border bg-card px-6 py-12">
 							<View className="mb-4 h-14 w-14 items-center justify-center rounded-2xl bg-muted">
 								<Lucide name="route" size={28} color="#9ca3af" />
@@ -179,7 +192,9 @@ const Dashboard = () => {
 								No routes yet
 							</Text>
 							<Text className="text-muted-foreground text-center text-sm">
-								Routes will appear here once they are created
+								{isAdminOrManager
+									? "Routes will appear here once they are created"
+									: "You haven't been assigned any routes yet"}
 							</Text>
 						</View>
 					)}

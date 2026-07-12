@@ -97,6 +97,27 @@ const AdminDashboard = () => {
 						</View>
 					</View>
 				</Pressable>
+
+				<Pressable
+					onPress={() => router.push("/admin/assignments")}
+					className="bg-card border-border active:opacity-80 mt-3 rounded-xl border p-4"
+				>
+					<View className="flex-row items-center justify-between">
+						<View className="flex-1 pr-4">
+							<Text className="text-foreground text-base font-semibold">
+								Route Assignments
+							</Text>
+							<Text className="text-muted-foreground mt-1 text-sm leading-5">
+								Assign routes to drivers and manage existing assignments.
+							</Text>
+						</View>
+						<View className="bg-primary rounded-lg px-3 py-1.5">
+							<Text className="text-primary-foreground text-sm font-medium">
+								Open
+							</Text>
+						</View>
+					</View>
+				</Pressable>
 			</ScrollView>
 		</SafeAreaView>
 	);

@@ -12,6 +12,7 @@ import type * as auth from "../auth.js";
 import type * as checkpoints from "../checkpoints.js";
 import type * as http from "../http.js";
 import type * as profile from "../profile.js";
+import type * as routeAssignments from "../routeAssignments.js";
 import type * as routes from "../routes.js";
 
 import type {
@@ -25,6 +26,7 @@ declare const fullApi: ApiFromModules<{
   checkpoints: typeof checkpoints;
   http: typeof http;
   profile: typeof profile;
+  routeAssignments: typeof routeAssignments;
   routes: typeof routes;
 }>;
 

@@ -32,7 +32,8 @@ export default defineSchema({
 
 		isDeleted: v.boolean(),
 	}).index("by_auth_user", ["authUserId"])
-		.index("by_status", ["status"]),
+		.index("by_status", ["status"])
+		.index("by_status_and_role", ["status", "role"]),
 
 	routes: defineTable({
 		name: v.string(),
@@ -59,17 +60,18 @@ export default defineSchema({
 	routeAssignments: defineTable({
 		routeId: v.id("routes"),
 
-		driverId: v.id("users"),
+		driverId: v.id("profiles"),
 
-		assignedBy: v.id("users"),
+		assignedBy: v.id("profiles"),
 
 		active: v.boolean(),
-	}),
+	}).index("by_driverId", ["driverId"])
+		.index("by_routeId", ["routeId"]),
 
 	routeRuns: defineTable({
 		routeId: v.id("routes"),
 
-		driverId: v.id("users"),
+		driverId: v.id("profiles"),
 
 		startedAt: v.number(),
 
@@ -81,7 +83,7 @@ export default defineSchema({
 			v.literal("delayed"),
 			v.literal("cancelled"),
 		),
-	}),
+	}).index("by_driverId", ["driverId"]),
 
 	incidents: defineTable({
 		routeRunId: v.id("routeRuns"),
