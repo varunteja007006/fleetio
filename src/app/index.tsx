@@ -12,8 +12,6 @@ export default function Index() {
 
 	const userProfile = useQuery(api.profile.getUserProfile);
 
-	const isAdmin = useQuery(api.profile.getIsAdminProfile);
-
 	const router = useRouter();
 
 	const renderContent = () => {
@@ -37,17 +35,6 @@ export default function Index() {
 							Go to Dashboard
 						</Text>
 					</Pressable>
-
-					{isAdmin && (
-						<Pressable
-							onPress={() => router.push("/admin")}
-							className="rounded-xl border border-gray-500/30 px-5 py-4 active:opacity-70 w-full"
-						>
-							<Text className="text-secondary-foreground text-center font-semibold">
-								Go to Admin Dashboard
-							</Text>
-						</Pressable>
-					)}
 				</>
 			);
 		}

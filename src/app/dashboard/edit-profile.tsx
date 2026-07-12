@@ -11,8 +11,8 @@ import {
 	View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useAppForm } from "~/components/forms/hooks";
 import z from "zod";
+import { useAppForm } from "~/components/forms/hooks";
 
 const editProfileSchema = z.object({
 	firstName: z.string(),
@@ -83,10 +83,9 @@ export default function EditProfileScreen() {
 
 	return (
 		<SafeAreaView className="flex-1">
-			<Stack.Screen options={{ title: "Edit Profile" }} />
-
+			<Stack.Screen options={{ headerShown: false }} />
 			<ScrollView
-				className="px-6 py-6"
+				className="px-6 pb-6 pt-4"
 				contentContainerStyle={{ paddingBottom: 40 }}
 			>
 				<Text className="text-foreground text-2xl font-bold">Edit Profile</Text>
