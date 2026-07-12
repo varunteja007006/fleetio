@@ -41,16 +41,29 @@ export const getIsAdminProfile = query({
 
 export const getUserProfileById = query({
 	args: {
-		id: v.string(),
+		id: v.id("profiles"),
 	},
 	handler: async (ctx, args) => {
 		try {
-			const userProfile = await ctx.db
+			const user = await authComponent.getAuthUser(ctx);
+
+			const callerProfile = await ctx.db
 				.query("profiles")
-				.withIndex("by_auth_user", (q) => q.eq("authUserId", args.id))
-				.order("desc")
+				.withIndex("by_auth_user", (q) => q.eq("authUserId", user._id))
 				.first();
-			return userProfile;
+
+			if (!callerProfile) return null;
+
+			const targetProfile = await ctx.db.get(args.id);
+			if (!targetProfile) return null;
+
+			// Allow if caller is admin or the target user themselves
+			const isAdmin = callerProfile.role === "admin";
+			const isSelf = callerProfile.authUserId === targetProfile.authUserId;
+
+			if (!isAdmin && !isSelf) return null;
+
+			return targetProfile;
 		} catch {
 			return null;
 		}
