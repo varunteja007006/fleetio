@@ -197,8 +197,8 @@ export const getPendingProfiles = query({
 
 		const pendingProfiles = await ctx.db
 			.query("profiles")
-			.filter((q) => q.eq(q.field("status"), "pending"))
-			.collect();
+			.withIndex("by_status", (q) => q.eq("status", "pending"))
+			.take(100);
 
 		return pendingProfiles;
 	},

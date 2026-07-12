@@ -26,7 +26,7 @@ export const list = query({
 		includeDeleted: v.optional(v.boolean()),
 	},
 	handler: async (ctx, args) => {
-		const routes = await ctx.db.query("routes").withIndex("byName").collect();
+		const routes = await ctx.db.query("routes").withIndex("byName").take(10000);
 
 		if (args.includeDeleted) {
 			return routes;
@@ -116,6 +116,7 @@ export const remove = mutation({
 export const routesStats = query({
 	args: {},
 	handler: async (ctx, _args) => {
-		return { totalRoutes: (await ctx.db.query("routes").collect()).length };
+		const allRoutes = await ctx.db.query("routes").withIndex("byName").take(10000);
+		return { totalRoutes: allRoutes.filter((r) => !r.isDeleted).length };
 	},
 });
