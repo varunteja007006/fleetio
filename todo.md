@@ -7,22 +7,33 @@
 
 ---
 
+> **Current priority: Phase 1 — Authentication & User Management**
+> Detailed breakdown with todos at the bottom.
+
+---
+
 ## Phase 1 - Authentication & User Management
-**Status: ⚠️ Partial**
+**Status: ✅ Mostly done (3 tasks remaining)**
 
 - ✅ Better Auth setup (auth.ts, http.ts, convex.config.ts, auth.config.ts)
 - ✅ OTP Sign Up / Login (otp-sign-up.tsx)
 - ✅ Logout (profile.tsx)
 - ✅ Session management (Convex + Better Auth)
-- ✅ Profiles table (schema: authUserId, role, status, phone, email, etc.)
+- ✅ Profiles table (schema: authUserId, role, status, phone, email, firstName, lastName, etc.)
 - ✅ Roles: admin, manager, driver, new_user
 - ✅ Statuses: pending, approved, rejected
 - ✅ Auto-create profile on user signup (auth.ts trigger)
-- ⚠️ Admin users list (basic index.tsx with pagination, empty detail/new screens)
-- ❌ Admin approve/reject flow for drivers
-- ❌ Admin user detail screen (users/[user_id]/index.tsx is empty)
-- ❌ Admin new user creation screen (users/new/index.tsx is stub)
-- ❌ SMS OTP integration (Fast2SMS/MSG91 - currently console.log only)
+- ✅ Admin users list with search, filter tabs, role/status badges
+- ✅ Admin approve/reject/role change mutations + UI in user detail screen
+- ✅ Admin user detail screen (users/[user_id]/index.tsx with full info + actions)
+- ✅ Profile update mutation (convex)
+- ✅ Profile edit screen (dashboard/edit-profile.tsx)
+- ✅ updateProfile mutation
+- ✅ updateUserStatus + updateUserRole mutations (admin)
+- ✅ getPendingProfiles query (admin)
+- ❌ SMS OTP - production provider integration (Fast2SMS/MSG91 - currently console.log)
+- ❌ Route guards / auth middleware
+- ❌ Dashboard "Complete Profile" prompt
 
 ---
 
@@ -139,18 +150,80 @@
 
 ---
 
-## Development Order (per spec)
-1. ✅ Better Auth
-2. ⚠️ Users + Roles (admin approval still needed)
-3. ⚠️ Routes (checkpoint UI still needed)
-4. ❌ Checkpoints (UI + backend)
-5. ❌ Route Assignment
-6. ❌ Start Route
-7. ❌ GPS Tracking
-8. ❌ Checkpoint Detection
-9. ❌ Delay Detection
-10. ❌ Notifications
-11. ❌ Incidents + Photos
-12. ❌ WhatsApp
-13. ❌ Dashboard
-14. ❌ Analytics
+# Phase 1 — Detailed Implementation Todos
+
+## ✅ 1.1 Convex: Profile update mutation
+**File:** `convex/profile.ts`
+- ✅ `updateProfile` mutation added
+- Fields: firstName, lastName, aadharNumber, panNumber, emergencyPhone, insurance, hasInsurance
+- Gets current user via `authComponent.getAuthUser(ctx)`
+- Only patches provided fields
+- Returns profile `_id`
+
+## ✅ 1.2 Convex: Admin approve/reject/role mutations
+**File:** `convex/profile.ts`
+- ✅ `updateUserStatus` mutation — admin only, patches status to approved/rejected
+- ✅ `updateUserRole` mutation — admin only, patches role to admin/manager/driver/new_user
+- Both check caller is admin via profile lookup
+
+## ✅ 1.3 Convex: Query pending users
+**File:** `convex/profile.ts`
+- ✅ `getPendingProfiles` query — admin only, returns profiles where status === "pending"
+
+## ✅ 1.4 Frontend: Admin user detail screen
+**File:** `src/app/admin/users/[user_id]/index.tsx`
+- ✅ Shows full profile info in sections (Personal, Identity, Emergency)
+- ✅ Approve/Reject buttons when status is pending
+- ✅ Role changer (admin/manager/driver pressable buttons)
+- ✅ Status and role badges with colors
+- ✅ Loading and not-found states
+
+## ✅ 1.6 Frontend: Profile edit screen
+**File:** `src/app/dashboard/edit-profile.tsx`
+- ✅ Edit firstName, lastName, aadharNumber, panNumber, emergencyPhone, insurance, hasInsurance
+- ✅ Pre-populated with existing profile data
+- ✅ Yes/No toggle for hasInsurance
+- ✅ Navigates back on save
+
+## ✅ 1.7 Frontend: Admin users list polish
+**File:** `src/app/admin/users/index.tsx`
+- ✅ Search bar (name, phone, email)
+- ✅ Filter tabs: All | Pending | Approved | Rejected
+- ✅ Role and status badges per user row
+- ✅ Tappable rows → navigate to user detail
+- ✅ Pagination with Load More
+
+## ❌ 1.8 Backend: SMS OTP production integration
+**File:** `convex/auth.ts`
+- Uncomment and configure Fast2SMS/MSG91 integration
+- Use `env` from `_generated/server` (not process.env) for API keys
+- Add proper error handling
+
+## ❌ 1.9 Frontend: Auth route guard
+**File:** `src/app/_layout.tsx` or per-route
+- Redirect unauthenticated users to login
+- Check profile status (pending users should see limited access)
+- Check role for admin-only routes
+- Consider creating a `useAuthGuard` hook
+
+## ❌ 1.10 Frontend: Dashboard "Complete Profile" prompt
+**File:** `src/app/dashboard/(tabs)/index.tsx`
+- Detect `new_user` or missing firstName/lastName
+- Show persistent banner/modal to complete profile
+- Link to profile edit screen
+
+---
+
+## Implementation order (Phase 1)
+
+```
+1.  ✅ 1.1  →  Convex: updateProfile mutation
+2.  ✅ 1.2  →  Convex: Admin approve/reject/role mutations
+3.  ✅ 1.3  →  Convex: getPendingProfiles query
+4.  ✅ 1.4  →  Admin user detail screen
+5.  ✅ 1.6  →  Profile edit screen
+6.  ✅ 1.7  →  Admin users list polish
+7.  ❌ 1.9  →  Auth route guard
+8.  ❌ 1.10 →  Dashboard profile prompt
+9.  ❌ 1.8  →  SMS OTP production (last — no impact on dev flow)
+```

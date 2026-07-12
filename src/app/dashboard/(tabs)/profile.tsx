@@ -2,9 +2,11 @@ import { api } from "@/convex/_generated/api";
 import Luicide from "@react-native-vector-icons/lucide";
 import { useQuery } from "convex/react";
 import { useRouter } from "expo-router";
-import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { JSX } from "react/jsx-runtime";
 
+import ProfileCard from "~/components/profile-card";
+import SignOutButton from "~/components/sign-out-button";
 import { authClient } from "~/lib/auth-client";
 
 // Settings Item Component
@@ -53,54 +55,16 @@ export default function ProfileScreen() {
 
 	const userProfile = useQuery(api.profile.getUserProfile);
 
-	const handleSignOut = async () => {
-		Alert.alert("Sign Out", "Are you sure you want to sign out?", [
-			{ text: "Cancel", style: "cancel" },
-			{
-				text: "Sign Out",
-				style: "destructive",
-				onPress: async () => {
-					await authClient.signOut();
-					router.push("/");
-				},
-			},
-		]);
-	};
-
 	if (!session?.user) {
 		return null;
 	}
-
-	const firstName = userProfile?.firstName ?? "";
-	const lastName = userProfile?.lastName ?? "";
-
-	const fullName = firstName + lastName;
-	const role =
-		userProfile?.role === "new_user" ? "NEW" : (userProfile?.role ?? "");
-
-	const profileStatus = userProfile?.status;
 
 	return (
 		<>
 			<ScrollView className="px-6 py-6">
 				{/* Profile Header */}
-				<View className="mb-6 items-center">
-					<View className="mb-4 h-24 w-24 border items-center justify-center rounded-full">
-						<Text className="text-4xl font-bold">
-							{fullName?.[0]?.toUpperCase() ?? ""}
-						</Text>
-					</View>
-					<Text className="text-2xl font-bold">{fullName}</Text>
-					<Text className="mt-1 text-sm">{userProfile?.email}</Text>
-					<Text className="mt-1 text-sm">{userProfile?.phoneNumber}</Text>
-					<Text className="mt-1 text-sm">{role}</Text>
-					{profileStatus && (
-						<Text
-							className={`mt-1 text-sm uppercase px-4 py-2 rounded-2xl ${profileStatus === "approved" ? "text-green-600 bg-green-100" : profileStatus === "pending" ? "text-white bg-amber-500" : "bg-red-100 text-red-600"}`}
-						>
-							{profileStatus}
-						</Text>
-					)}
+				<View className="mb-6">
+					<ProfileCard profile={userProfile} session={session} />
 				</View>
 
 				{/* Account Section */}
@@ -179,17 +143,7 @@ export default function ProfileScreen() {
 
 				{/* Sign Out Button */}
 				<View className="mb-20">
-					<Pressable
-						onPress={handleSignOut}
-						className="bg-destructive border-red-600 border rounded-xl py-4 active:opacity-70"
-					>
-						<View className="flex-row items-center justify-center">
-							<Luicide name="log-out" size={20} color={"#fff"} />
-							<Text className="ml-2 text-destructive-foreground text-base font-semibold">
-								Sign Out
-							</Text>
-						</View>
-					</Pressable>
+					<SignOutButton onSignOut={() => router.push("/")} />
 				</View>
 			</ScrollView>
 		</>
