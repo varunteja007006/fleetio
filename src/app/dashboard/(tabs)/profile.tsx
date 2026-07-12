@@ -26,7 +26,7 @@ function SettingsItem({
 	return (
 		<Pressable
 			onPress={onPress}
-			className="mb-2 flex-row items-center justify-between rounded-xl border p-1 pr-3 active:opacity-70"
+			className="mb-2 flex-row items-center justify-between rounded-xl border border-gray-500/30 p-1 pr-3 active:opacity-70"
 			style={{ backgroundColor: color + "10" }}
 		>
 			<View className="flex-1 flex-row items-center">
@@ -61,7 +61,7 @@ export default function ProfileScreen() {
 				style: "destructive",
 				onPress: async () => {
 					await authClient.signOut();
-					router.push("/auth");
+					router.push("/");
 				},
 			},
 		]);
@@ -109,7 +109,7 @@ export default function ProfileScreen() {
 					<SettingsItem
 						icon={<Luicide name={"pencil"} size={20} color={"#3b82f6"} />}
 						label="Edit Profile"
-						onPress={() => {}}
+						onPress={() => router.push("/dashboard/edit-profile")}
 						color="#3b82f6"
 						showArrow
 					/>

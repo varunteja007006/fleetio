@@ -19,7 +19,7 @@ export default function AuthRequired() {
 					Please sign in to access the dashboard
 				</Text>
 				<Pressable
-					onPress={() => router.push("/auth")}
+					onPress={() => router.push("/")}
 					className="bg-primary mt-6 w-full items-center rounded-lg px-6 py-3"
 				>
 					<Text className="text-primary-foreground font-semibold">
