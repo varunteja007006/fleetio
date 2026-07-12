@@ -7,16 +7,16 @@
 
 ---
 
-> **Current priority: Phase 1 — Authentication & User Management**
+> **Current priority: Phase 4 — Route Execution**
 > Detailed breakdown with todos at the bottom.
 
 ---
 
 ## Phase 1 - Authentication & User Management
-**Status: ✅ Mostly done (3 tasks remaining)**
+**Status: ✅ Mostly done (1 task remaining)**
 
 - ✅ Better Auth setup (auth.ts, http.ts, convex.config.ts, auth.config.ts)
-- ✅ OTP Sign Up / Login (otp-sign-up.tsx)
+- ✅ OTP Sign Up / Login (`~/components/auth/otp-sign-up`, imported in `src/app/index.tsx`)
 - ✅ Logout (profile.tsx)
 - ✅ Session management (Convex + Better Auth)
 - ✅ Profiles table (schema: authUserId, role, status, phone, email, firstName, lastName, etc.)
@@ -31,36 +31,36 @@
 - ✅ updateProfile mutation
 - ✅ updateUserStatus + updateUserRole mutations (admin)
 - ✅ getPendingProfiles query (admin)
+- ✅ Dashboard "Complete Profile" prompt (`dashboard/(tabs)/index.tsx` lines 187-205, shown when firstName is missing)
+- ✅ Route guards / auth middleware (`useAuthGuard` hook with admin layout guard, dashboard auth guard)
 - ❌ SMS OTP - production provider integration (Fast2SMS/MSG91 - currently console.log)
-- ❌ Route guards / auth middleware
-- ❌ Dashboard "Complete Profile" prompt
 
 ---
 
 ## Phase 2 - Route Management
-**Status: ⚠️ Partial (Backend ✅, Checkpoint UI ❌)**
+**Status: ✅ Complete**
 
 - ✅ Routes CRUD (create, list, getById, update, soft delete - routes.ts)
 - ✅ Admin route list + create screen (admin/route/index.tsx)
 - ✅ Admin route edit screen (admin/route/[route_id]/index.tsx)
 - ✅ Checkpoints table schema (routeId, sequence, name, lat, lng, expectedTravelMinutes)
-- ❌ Checkpoint management UI (no screens to add/edit/reorder checkpoints within a route)
-- ❌ Checkpoint backend functions (no convex mutations/queries for checkpoints yet)
+- ✅ Checkpoint backend functions (convex/checkpoints.ts — listByRoute, getById, create, update, remove, reorder)
+- ✅ Checkpoint management UI (inline add/edit/reorder/delete in admin route edit screen)
 
 ---
 
 ## Phase 3 - Route Assignment
-**Status: ❌ Not started**
+**Status: ✅ Complete**
 
 - ✅ routeAssignments table schema (routeId, driverId, assignedBy, active)
-- ❌ Admin assign screen (select driver + select route + assign)
-- ❌ Driver "My Assigned Routes" screen
-- ❌ Backend functions for assignment CRUD
+- ✅ Admin assign screen (select driver + select route + assign) — `src/app/admin/assignments/index.tsx`
+- ✅ Driver "My Assigned Routes" screen — `src/app/dashboard/(tabs)/routes.tsx` (role-aware: drivers see assigned routes, admins/managers see all routes)
+- ✅ Backend functions for assignment CRUD — `convex/routeAssignments.ts` (listByDriver, listAll, create, remove, getActiveAssignmentForRoute)
 
 ---
 
 ## Phase 4 - Route Execution
-**Status: ❌ Not started**
+**Status: ⚠️ Partial**
 
 - ✅ routeRuns table schema (routeId, driverId, startedAt, completedAt, status)
 - ❌ checkpointVisits table (NOT in schema - needs to be created)
@@ -91,7 +91,7 @@
 ---
 
 ## Phase 7 - Delay Detection
-**Status: ❌ Not started**
+**Status: ⚠️ Partial**
 
 - ✅ alerts table schema (routeRunId, checkpointId, type, message, sentToDriver, sentToManager)
 - ❌ Cron job (every 5 min) to compare expected vs actual arrival
@@ -110,7 +110,7 @@
 ---
 
 ## Phase 9 - Incident Management
-**Status: ❌ Not started**
+**Status: ⚠️ Partial**
 
 - ✅ incidents table schema (routeRunId, checkpointId, reason, description, photoUrls, reportedAt)
 - ❌ Incident reporting UI (driver opens alert → upload photos → select reason → submit)
@@ -120,7 +120,7 @@
 ---
 
 ## Phase 10 - WhatsApp Integration
-**Status: ❌ Not started**
+**Status: ⚠️ Partial**
 
 - ✅ whatsappGroups table schema
 - ✅ routeWhatsappMappings table schema
@@ -147,6 +147,42 @@
 - ❌ ETA prediction (current speed + traffic + checkpoint history)
 - ❌ Vehicle Assignment (vehicles + vehicleAssignments tables)
 - ❌ Driver History (routes completed, avg delay, incidents)
+
+---
+
+# Phase 4 — Detailed Implementation Todos
+
+## ❌ 4.1 Schema: checkpointVisits table
+**File:** `convex/schema.ts`
+- Fields: routeRunId, checkpointId, status (pending/completed/skipped), reachedAt, createdAt
+- Index by routeRunId and checkpointId
+
+## ❌ 4.2 Convex: Route run CRUD
+**File:** `convex/routeRuns.ts`
+- `startRouteRun` mutation — creates routeRun + checkpointVisits for all checkpoints in the route
+- `completeRouteRun` mutation — marks routeRun as completed with completedAt timestamp
+- `cancelRouteRun` mutation — marks routeRun as cancelled
+- `getActiveRun` query — returns the current active routeRun for a driver
+- `getRouteRunById` query — returns routeRun with enriched checkpointVisit data
+
+## ❌ 4.3 Frontend: Start route screen
+**File:** `src/app/dashboard/start-route.tsx`
+- Select from assigned routes
+- "Start Route" button → creates routeRun + navigates to active run screen
+- Confirm dialog before starting
+- Loading state while creating
+
+## ❌ 4.4 Frontend: Active route run screen
+**File:** `src/app/dashboard/active-run.tsx`
+- Shows route progress (checkpoint list with status)
+- Current checkpoint highlight
+- Complete Route / Cancel Route buttons
+- Real-time status updates
+
+## ❌ 4.5 Frontend: Route history screen
+**File:** `src/app/dashboard/route-history.tsx`
+- List of past route runs with status, date, duration
+- Tap to view details (checkpoint completion times)
 
 ---
 
@@ -199,18 +235,55 @@
 - Use `env` from `_generated/server` (not process.env) for API keys
 - Add proper error handling
 
-## ❌ 1.9 Frontend: Auth route guard
-**File:** `src/app/_layout.tsx` or per-route
-- Redirect unauthenticated users to login
-- Check profile status (pending users should see limited access)
-- Check role for admin-only routes
-- Consider creating a `useAuthGuard` hook
+## ✅ 1.9 Frontend: Auth route guard
+**File:** `src/hooks/use-auth-guard.ts`, `src/app/admin/_layout.tsx`, `src/app/dashboard/(tabs)/_layout.tsx`, `src/app/dashboard/edit-profile.tsx`
+- ✅ `useAuthGuard` hook created — redirects unauthenticated users to `/`, checks role for admin-only routes, supports `requireAdmin` and `requireApproved` options
+- ✅ Admin `_layout.tsx` wraps all admin screens with admin role guard
+- ✅ Dashboard tabs layout redirects unauthenticated users to login
+- ✅ Dashboard edit-profile screen guarded from unauthenticated access
 
-## ❌ 1.10 Frontend: Dashboard "Complete Profile" prompt
+## ✅ 1.10 Frontend: Dashboard "Complete Profile" prompt
 **File:** `src/app/dashboard/(tabs)/index.tsx`
-- Detect `new_user` or missing firstName/lastName
-- Show persistent banner/modal to complete profile
-- Link to profile edit screen
+- ✅ Detects missing firstName/lastName (`noFirstName` check)
+- ✅ Shows persistent red banner linking to profile screen
+- ✅ Links to `/dashboard/(tabs)/profile` for editing
+
+---
+
+# Phase 3 — Detailed Implementation Todos
+
+## ✅ 3.1 Convex: Schema indexes
+**File:** `convex/schema.ts`
+- ✅ Added `by_status_and_role` compound index to profiles table
+- ✅ Added `by_driverId` and `by_routeId` indexes to routeAssignments table
+
+## ✅ 3.2 Convex: Route assignment CRUD
+**File:** `convex/routeAssignments.ts`
+- ✅ `listByDriver` query — returns active assignments for the current authenticated driver, enriched with route data
+- ✅ `listAll` query — admin-only, returns all assignments enriched with route, driver profile, and assigner profile
+- ✅ `create` mutation — admin-only, accepts profileId + routeId, creates assignment with active=true
+- ✅ `remove` mutation — admin-only, hard-deletes an assignment
+- ✅ `getActiveAssignmentForRoute` query — returns active assignment for a given route (used for future phases)
+
+## ✅ 3.3 Convex: getDrivers query
+**File:** `convex/profile.ts`
+- ✅ `getDrivers` query — admin-only, returns all profiles with status="approved" and role="driver" using the new compound index
+
+## ✅ 3.4 Frontend: Admin assignment screen
+**File:** `src/app/admin/assignments/index.tsx`
+- ✅ List all assignments with driver name, route name, status badge, and assigned-by info
+- ✅ Create assignment form with driver picker and route picker (chip-style selectors)
+- ✅ Remove assignment with confirmation alert
+
+## ✅ 3.5 Frontend: Driver assigned routes screen
+**File:** `src/app/dashboard/(tabs)/routes.tsx`
+- ✅ Role-aware: drivers see "My Routes" with their assigned routes
+- ✅ Admins/managers see all routes in a simple browse view
+- ✅ Empty state for no assignments
+
+## ✅ 3.6 Frontend: Admin dashboard link
+**File:** `src/app/admin/index.tsx`
+- ✅ "Route Assignments" quick action card linking to the assignments screen
 
 ---
 
@@ -223,7 +296,17 @@
 4.  ✅ 1.4  →  Admin user detail screen
 5.  ✅ 1.6  →  Profile edit screen
 6.  ✅ 1.7  →  Admin users list polish
-7.  ❌ 1.9  →  Auth route guard
-8.  ❌ 1.10 →  Dashboard profile prompt
+7.  ✅ 1.10 →  Dashboard profile prompt
+8.  ✅ 1.9  →  Auth route guard
 9.  ❌ 1.8  →  SMS OTP production (last — no impact on dev flow)
+```
+
+## Implementation order (Phase 4)
+
+```
+1.  ❌ 4.1  →  Schema: checkpointVisits table
+2.  ❌ 4.2  →  Convex: Route run CRUD
+3.  ❌ 4.3  →  Frontend: Start route screen
+4.  ❌ 4.4  →  Frontend: Active route run screen
+5.  ❌ 4.5  →  Frontend: Route history screen
 ```
