@@ -30,6 +30,8 @@ export default defineSchema({
 
 		emergencyPhone: v.optional(v.string()),
 
+		pushToken: v.optional(v.string()),
+
 		isDeleted: v.boolean(),
 	}).index("by_auth_user", ["authUserId"])
 		.index("by_status", ["status"])

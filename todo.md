@@ -7,7 +7,7 @@
 
 ---
 
-> **Current priority: Phase 8 — Push Notifications**
+> **Current priority: Phase 9 — Incident Management**
 
 ---
 
@@ -106,11 +106,15 @@
 ---
 
 ## Phase 8 - Push Notifications
-**Status: ❌ Not started**
+**Status: ✅ Complete**
 
-- ❌ Expo Push / FCM / OneSignal setup
-- ❌ Notify driver: "You are delayed by X mins"
-- ❌ Notify manager: "Driver ABC delayed at Checkpoint 3"
+- ✅ `expo-notifications` package installed
+- ✅ `pushToken` field added to profiles schema
+- ✅ `registerPushToken` mutation (`convex/pushNotifications.ts`)
+- ✅ `sendPushForAlert` internal action — sends via Expo Push API to driver + managers, updates sentToDriver/sentToManager flags
+- ✅ Delayed → push integration: cron schedules zero-delay action after creating each alert
+- ✅ Frontend `usePushNotifications` hook — requests permission, registers token, handles tap-to-navigate
+- ✅ Integrated into root layout via `NotificationsSetup` component
 
 ---
 

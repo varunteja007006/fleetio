@@ -65,7 +65,7 @@ export const checkForDelays = internalMutation({
 				const delayMs = now - deadlineMs;
 				const delayMinutes = Math.ceil(delayMs / 60000);
 
-				await ctx.db.insert("alerts", {
+				const alertId = await ctx.db.insert("alerts", {
 					routeRunId: run._id,
 					checkpointId: visit.checkpointId,
 					type: "delay",
@@ -75,6 +75,12 @@ export const checkForDelays = internalMutation({
 					whatsappSent: false,
 					createdAt: now,
 				});
+
+				await ctx.scheduler.runAfter(
+					0,
+					internal.pushNotifications.sendPushForAlert,
+					{ alertId, routeRunId: run._id },
+				);
 			}
 		}
 	},

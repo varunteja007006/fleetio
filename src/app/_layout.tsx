@@ -3,6 +3,7 @@ import { ConvexProviderWithAuth, ConvexReactClient } from "convex/react";
 import { Stack } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { authClient } from "~/lib/auth-client";
+import { usePushNotifications } from "~/hooks/use-push-notifications";
 
 type SessionLike = { id?: string | null };
 type SessionWithNested = { session?: SessionLike | null };
@@ -79,9 +80,15 @@ function useAuthFromBetterAuth() {
 	};
 }
 
+function NotificationsSetup() {
+	usePushNotifications();
+	return null;
+}
+
 export default function RootLayout() {
 	return (
 		<ConvexProviderWithAuth client={convex} useAuth={useAuthFromBetterAuth}>
+			<NotificationsSetup />
 			<Stack>
 				<Stack.Screen name="index" options={{ title: "Home" }} />
 			</Stack>

@@ -55,6 +55,7 @@
           }
         }
       ],
+      "expo-notifications",
       "expo-secure-store",
       "@react-native-vector-icons/lucide",
       [
