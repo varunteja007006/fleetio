@@ -95,11 +95,15 @@ export default function ProfileScreen() {
 							icon={<Luicide name={"bell"} size={20} color={"#f59e0b"} />}
 							label="Notifications"
 							description={
-								userProfile?.notificationsEnabled ?? true ? "Enabled" : "Disabled"
+								(userProfile?.notificationsEnabled ?? true)
+									? "Enabled"
+									: "Disabled"
 							}
 							onPress={() =>
 								updateProfile({
-									notificationsEnabled: !(userProfile?.notificationsEnabled ?? true),
+									notificationsEnabled: !(
+										userProfile?.notificationsEnabled ?? true
+									),
 								})
 							}
 							color="#f59e0b"

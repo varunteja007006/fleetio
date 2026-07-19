@@ -3,6 +3,8 @@ import { useMutation } from "convex/react";
 import { useRouter } from "expo-router";
 import { useEffect, useRef } from "react";
 import { Platform } from "react-native";
+import * as Notifications from "expo-notifications";
+import Constants from "expo-constants";
 
 export function usePushNotifications() {
 	const router = useRouter();
@@ -16,9 +18,6 @@ export function usePushNotifications() {
 
 		const setup = async () => {
 			try {
-				const Notifications = await import("expo-notifications");
-				const Constants = await import("expo-constants");
-
 				const { status: existingStatus } =
 					await Notifications.getPermissionsAsync();
 				let finalStatus = existingStatus;
@@ -33,7 +32,7 @@ export function usePushNotifications() {
 				}
 
 				const projectId =
-					Constants.default.expoConfig?.extra?.eas?.projectId;
+					Constants.expoConfig?.extra?.eas?.projectId;
 
 				const tokenData = await Notifications.getExpoPushTokenAsync({
 					projectId,

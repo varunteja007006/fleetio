@@ -271,7 +271,7 @@ export default function EditProfileScreen() {
 				<Pressable
 					onPress={async () => form.handleSubmit()}
 					disabled={isSubmitting}
-					className={`bg-primary mt-6 rounded-lg py-3 ${
+					className={`bg-primary mt-12 rounded-lg py-3 ${
 						isSubmitting ? "opacity-60" : "active:opacity-80"
 					}`}
 				>

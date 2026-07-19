@@ -107,7 +107,7 @@ export default function HelpCenterScreen() {
 					</Pressable>
 
 					<Pressable
-						onPress={() => router.push("/dashboard/contact-support")}
+						onPress={() => router.push("/dashboard/submit-request")}
 						className="mb-3 flex-row items-center rounded-xl border border-gray-500/30 p-4 active:opacity-70"
 					>
 						<View className="mr-4 h-10 w-10 items-center justify-center rounded-xl bg-green-500/30">

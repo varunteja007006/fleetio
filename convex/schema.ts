@@ -173,6 +173,18 @@ export default defineSchema({
 		whatsappGroupId: v.id("whatsappGroups"),
 	}),
 
+	requests: defineTable({
+		authUserId: v.string(),
+		type: v.union(
+			v.literal("feedback"),
+			v.literal("feature_request"),
+			v.literal("bug"),
+		),
+		description: v.string(),
+		imageStorageIds: v.array(v.string()),
+		createdAt: v.number(),
+	}).index("by_auth_user", ["authUserId"]),
+
 	supportMessages: defineTable({
 		authUserId: v.string(),
 		subject: v.string(),

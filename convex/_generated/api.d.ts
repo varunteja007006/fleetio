@@ -17,6 +17,7 @@ import type * as http from "../http.js";
 import type * as otp from "../otp.js";
 import type * as profile from "../profile.js";
 import type * as pushNotifications from "../pushNotifications.js";
+import type * as requests from "../requests.js";
 import type * as routeAssignments from "../routeAssignments.js";
 import type * as routeRuns from "../routeRuns.js";
 import type * as routes from "../routes.js";
@@ -37,6 +38,7 @@ declare const fullApi: ApiFromModules<{
   otp: typeof otp;
   profile: typeof profile;
   pushNotifications: typeof pushNotifications;
+  requests: typeof requests;
   routeAssignments: typeof routeAssignments;
   routeRuns: typeof routeRuns;
   routes: typeof routes;

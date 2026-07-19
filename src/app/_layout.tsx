@@ -88,10 +88,10 @@ function NotificationsSetup() {
 export default function RootLayout() {
 	return (
 		<ConvexProviderWithAuth client={convex} useAuth={useAuthFromBetterAuth}>
-			<NotificationsSetup />
 			<Stack>
 				<Stack.Screen name="index" options={{ title: "Home" }} />
 			</Stack>
+			<NotificationsSetup />
 		</ConvexProviderWithAuth>
 	);
 }
