@@ -1,6 +1,6 @@
 import { api } from "@/convex/_generated/api";
 import Luicide from "@react-native-vector-icons/lucide";
-import { useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { Stack, useRouter } from "expo-router";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -9,6 +9,12 @@ import { JSX } from "react/jsx-runtime";
 import ProfileCard from "~/components/profile-card";
 import SignOutButton from "~/components/sign-out-button";
 import { authClient } from "~/lib/auth-client";
+
+const LANGUAGE_LABELS: Record<string, string> = {
+	en: "English",
+	hi: "Hindi",
+	gu: "Gujarati",
+};
 
 // Settings Item Component
 function SettingsItem({
@@ -56,6 +62,8 @@ export default function ProfileScreen() {
 
 	const userProfile = useQuery(api.profile.getUserProfile);
 
+	const updateProfile = useMutation(api.profile.updateProfile);
+
 	if (!session?.user) {
 		return null;
 	}
@@ -86,8 +94,14 @@ export default function ProfileScreen() {
 						<SettingsItem
 							icon={<Luicide name={"bell"} size={20} color={"#f59e0b"} />}
 							label="Notifications"
-							description="Enabled"
-							onPress={() => {}}
+							description={
+								userProfile?.notificationsEnabled ?? true ? "Enabled" : "Disabled"
+							}
+							onPress={() =>
+								updateProfile({
+									notificationsEnabled: !(userProfile?.notificationsEnabled ?? true),
+								})
+							}
 							color="#f59e0b"
 						/>
 					</View>
@@ -107,9 +121,12 @@ export default function ProfileScreen() {
 						<SettingsItem
 							icon={<Luicide name={"languages"} size={20} color={"#06b6d4"} />}
 							label="Language"
-							description="English"
-							onPress={() => {}}
+							description={
+								LANGUAGE_LABELS[userProfile?.language ?? ""] ?? "English"
+							}
+							onPress={() => router.push("/dashboard/language")}
 							color="#06b6d4"
+							showArrow
 						/>
 					</View>
 
@@ -123,14 +140,14 @@ export default function ProfileScreen() {
 								<Luicide name={"help-circle"} size={20} color={"#3b82f6"} />
 							}
 							label="Help Center"
-							onPress={() => {}}
+							onPress={() => router.push("/dashboard/help-center")}
 							color="#3b82f6"
 							showArrow
 						/>
 						<SettingsItem
 							icon={<Luicide name={"shield"} size={20} color={"#f59e0b"} />}
 							label="Privacy & Security"
-							onPress={() => {}}
+							onPress={() => router.push("/dashboard/privacy-policy")}
 							color="#f59e0b"
 							showArrow
 						/>
@@ -139,7 +156,7 @@ export default function ProfileScreen() {
 								<Luicide name={"alert-circle"} size={20} color={"#10b981"} />
 							}
 							label="Terms & Conditions"
-							onPress={() => {}}
+							onPress={() => router.push("/dashboard/terms-conditions")}
 							color="#10b981"
 							showArrow
 						/>

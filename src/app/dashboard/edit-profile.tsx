@@ -1,4 +1,5 @@
 import { api } from "@/convex/_generated/api";
+import Luicide from "@react-native-vector-icons/lucide";
 import { useMutation, useQuery } from "convex/react";
 import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
@@ -94,11 +95,19 @@ export default function EditProfileScreen() {
 	return (
 		<SafeAreaView className="flex-1">
 			<Stack.Screen options={{ headerShown: false }} />
+
+			{/* Header */}
+			<View className="flex-row items-center px-4 py-3">
+				<Pressable onPress={() => router.back()} className="mr-3 p-1">
+					<Luicide name="arrow-left" size={24} color="#9ca3af" />
+				</Pressable>
+				<Text className="text-foreground text-xl font-bold">Edit Profile</Text>
+			</View>
+
 			<ScrollView
-				className="px-6 pb-6 pt-4"
+				className="px-6 pb-6"
 				contentContainerStyle={{ paddingBottom: 40 }}
 			>
-				<Text className="text-foreground text-2xl font-bold">Edit Profile</Text>
 				<Text className="text-muted-foreground mt-1 text-sm">
 					Update your personal information.
 				</Text>

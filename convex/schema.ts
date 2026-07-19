@@ -32,6 +32,10 @@ export default defineSchema({
 
 		pushToken: v.optional(v.string()),
 
+		language: v.optional(v.string()),
+
+		notificationsEnabled: v.optional(v.boolean()),
+
 		isDeleted: v.boolean(),
 	}).index("by_auth_user", ["authUserId"])
 		.index("by_status", ["status"])
@@ -168,6 +172,13 @@ export default defineSchema({
 
 		whatsappGroupId: v.id("whatsappGroups"),
 	}),
+
+	supportMessages: defineTable({
+		authUserId: v.string(),
+		subject: v.string(),
+		message: v.string(),
+		createdAt: v.number(),
+	}).index("by_auth_user", ["authUserId"]),
 
 	otpCodes: defineTable({
 		phoneNumber: v.string(),

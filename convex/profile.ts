@@ -90,6 +90,8 @@ export const updateProfile = mutation({
 		emergencyPhone: v.optional(v.string()),
 		insurance: v.optional(v.string()),
 		hasInsurance: v.optional(v.boolean()),
+		language: v.optional(v.string()),
+		notificationsEnabled: v.optional(v.boolean()),
 	},
 	handler: async (ctx, args) => {
 		const user = await authComponent.getAuthUser(ctx);
@@ -111,6 +113,9 @@ export const updateProfile = mutation({
 		if (args.emergencyPhone !== undefined) fields.emergencyPhone = args.emergencyPhone;
 		if (args.insurance !== undefined) fields.insurance = args.insurance;
 		if (args.hasInsurance !== undefined) fields.hasInsurance = args.hasInsurance;
+		if (args.language !== undefined) fields.language = args.language;
+		if (args.notificationsEnabled !== undefined)
+			fields.notificationsEnabled = args.notificationsEnabled;
 
 		await ctx.db.patch(profile._id, fields);
 
