@@ -1,4 +1,5 @@
 import { api } from "@/convex/_generated/api";
+import { Lucide } from "@react-native-vector-icons/lucide";
 import { useQuery } from "convex/react";
 import { Stack, useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
@@ -14,42 +15,72 @@ export default function Index() {
 
 	const router = useRouter();
 
-	const renderContent = () => {
-		if (session?.session) {
-			return (
-				<>
-					{/* User info card + sign-out button */}
-					<ProfileCard profile={userProfile} session={session} />
+	if (session?.session) {
+		return (
+			<>
+				<Stack.Screen options={{ headerShown: false }} />
+				<View className="flex-1 bg-background">
+					<View className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-primary/10" />
+					<View className="absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-accent/10" />
 
-					<SignOutButton
-						onSignOut={() => router.push("/")}
-						className="w-full"
-					/>
+					<View className="flex-1 px-6 pt-20">
+						<View className="mb-8 items-center">
+							<View className="mb-3 h-16 w-16 items-center justify-center rounded-2xl bg-primary">
+								<Lucide name="truck" size={32} color="#000" />
+							</View>
+							<Text className="text-foreground text-3xl font-bold tracking-tight">
+								Fleetio
+							</Text>
+							<Text className="text-muted-foreground mt-1 text-base">
+								Welcome back!
+							</Text>
+						</View>
 
-					{/* Navigation buttons */}
-					<Pressable
-						onPress={() => router.push("/dashboard")}
-						className="bg-primary rounded-xl px-5 py-4 active:opacity-70 w-full"
-					>
-						<Text className="text-primary-foreground text-center text-lg font-semibold">
-							Go to Dashboard
-						</Text>
-					</Pressable>
-				</>
-			);
-		}
+						<ProfileCard profile={userProfile} session={session} />
 
-		return <OtpSignUp />;
-	};
+						<View className="mt-6 gap-3">
+							<Pressable
+								onPress={() => router.push("/dashboard")}
+								className="bg-primary items-center rounded-xl px-5 py-4 active:opacity-70"
+							>
+								<Text className="text-primary-foreground text-lg font-semibold">
+									Go to Dashboard
+								</Text>
+							</Pressable>
+
+							<SignOutButton onSignOut={() => router.push("/")} />
+						</View>
+					</View>
+				</View>
+			</>
+		);
+	}
 
 	return (
 		<>
 			<Stack.Screen options={{ headerShown: false }} />
-			<View className="flex-1 w-full items-center justify-center gap-8 px-6">
-				<Text className="text-foreground text-3xl font-bold">
-					Welcome to Fleetio!
-				</Text>
-				{renderContent()}
+			<View className="flex-1 bg-background">
+				<View className="absolute -top-24 -right-24 h-80 w-80 rounded-full bg-primary/8" />
+				<View className="absolute top-60 -left-20 h-56 w-56 rounded-full bg-accent/8" />
+				<View className="absolute -bottom-16 -right-8 h-48 w-48 rounded-full bg-primary/5" />
+
+				<View className="flex-1 px-6 pt-24">
+					<View className="mb-10 items-center">
+						<View className="mb-4 h-20 w-20 items-center justify-center rounded-2xl bg-primary shadow-lg shadow-primary/30">
+							<Lucide name="truck" size={40} color="#000" />
+						</View>
+						<Text className="text-foreground text-4xl font-bold tracking-tight">
+							Fleetio
+						</Text>
+						<Text className="text-muted-foreground mt-1.5 text-center text-base">
+							Fleet management, simplified
+						</Text>
+					</View>
+
+					<View className="flex-1">
+						<OtpSignUp />
+					</View>
+				</View>
 			</View>
 		</>
 	);

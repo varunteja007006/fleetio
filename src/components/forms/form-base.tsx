@@ -31,12 +31,12 @@ export function FormBase({
   const field = useFieldContext();
   const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
 
-  const labelElement = (
+  const labelElement = label ? (
     <>
       <Text className="text-foreground mb-2 text-sm font-medium">{label}</Text>
       {description && <Text>{description}</Text>}
     </>
-  );
+  ) : null;
 
   const errorElem = isInvalid && (
     <Text className="text-destructive mt-2 text-sm">

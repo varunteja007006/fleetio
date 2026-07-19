@@ -1,19 +1,14 @@
-import { Ionicons } from "@react-native-vector-icons/ionicons";
+import { Lucide } from "@react-native-vector-icons/lucide";
 import { useRouter } from "expo-router";
 import { Alert, Pressable, Text } from "react-native";
 
 import { authClient } from "~/lib/auth-client";
 
 interface SignOutButtonProps {
-	/** Optional callback invoked after successful sign out. Defaults to navigating to "/". */
 	onSignOut?: () => void;
 	className?: string;
 }
 
-/**
- * A sign-out button that shows a confirmation alert before signing out.
- * Uses `authClient.signOut()` and optionally invokes `onSignOut` afterward.
- */
 export default function SignOutButton({
 	onSignOut,
 	className,
@@ -41,10 +36,10 @@ export default function SignOutButton({
 	return (
 		<Pressable
 			onPress={handleSignOut}
-			className={`mt-4 flex-row items-center justify-center gap-2 rounded-xl border border-red-600/30 bg-red-500/10 py-3 active:opacity-70 ${className || ""}`}
+			className={`flex-row items-center justify-center gap-2 rounded-xl border border-red-600/20 bg-red-500/8 py-3.5 active:opacity-70 ${className || ""}`}
 		>
-			<Ionicons name="log-out-outline" size={18} color="#dc2626" />
-			<Text className="text-base font-semibold text-red-600">Sign Out</Text>
+			<Lucide name="log-out" size={18} color="#dc2626" />
+			<Text className="text-base font-semibold text-red-500">Sign Out</Text>
 		</Pressable>
 	);
 }
