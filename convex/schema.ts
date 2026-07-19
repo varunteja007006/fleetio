@@ -105,6 +105,36 @@ export default defineSchema({
 		reportedAt: v.number(),
 	}),
 
+	driverLocations: defineTable({
+		routeRunId: v.id("routeRuns"),
+
+		latitude: v.number(),
+		longitude: v.number(),
+
+		speed: v.optional(v.number()),
+
+		heading: v.optional(v.number()),
+
+		timestamp: v.number(),
+	}).index("by_routeRunId", ["routeRunId"]),
+
+	checkpointVisits: defineTable({
+		routeRunId: v.id("routeRuns"),
+
+		checkpointId: v.id("checkpoints"),
+
+		status: v.union(
+			v.literal("pending"),
+			v.literal("completed"),
+			v.literal("skipped"),
+		),
+
+		reachedAt: v.optional(v.number()),
+
+		createdAt: v.number(),
+	}).index("by_routeRunId", ["routeRunId"])
+		.index("by_checkpointId", ["checkpointId"]),
+
 	alerts: defineTable({
 		routeRunId: v.id("routeRuns"),
 
@@ -121,7 +151,7 @@ export default defineSchema({
 		whatsappSent: v.boolean(),
 
 		createdAt: v.number(),
-	}),
+	}).index("by_routeRunId_and_type", ["routeRunId", "type"]),
 
 	whatsappGroups: defineTable({
 		name: v.string(),

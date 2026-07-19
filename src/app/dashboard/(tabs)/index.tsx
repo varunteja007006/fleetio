@@ -29,6 +29,7 @@ const Dashboard = () => {
 	const routeCount = isAdminOrManager
 		? (allRoutes?.length ?? 0)
 		: (assignments?.filter((a) => a.active)?.length ?? 0);
+	const activeRun = useQuery(api.routeRuns.getActiveRun);
 	const firstName = userProfile?.firstName ?? "";
 	const lastName = userProfile?.lastName ?? "";
 	const displayName = firstName ? `${firstName} ${lastName}`.trim() : "there";
@@ -121,6 +122,32 @@ const Dashboard = () => {
 									Profile
 								</Text>
 							</Pressable>
+							{!isAdminOrManager ? (
+							<Pressable
+								onPress={() => router.push("/dashboard/start-route")}
+								className="flex-1 items-center rounded-2xl border border-border bg-card px-4 py-5 shadow-sm active:opacity-70"
+							>
+								<View className="mb-2 h-10 w-10 items-center justify-center rounded-xl bg-chart-3/15">
+									<Lucide name="flag" size={20} color="#c2410c" />
+								</View>
+								<Text className="text-foreground text-sm font-medium">
+									Start
+								</Text>
+							</Pressable>
+							) : null}
+							{!isAdminOrManager ? (
+								<Pressable
+									onPress={() => router.push("/dashboard/route-history")}
+									className="flex-1 items-center rounded-2xl border border-border bg-card px-4 py-5 shadow-sm active:opacity-70"
+								>
+									<View className="mb-2 h-10 w-10 items-center justify-center rounded-xl bg-chart-1/15">
+										<Lucide name="clock" size={20} color="#f59e0b" />
+									</View>
+									<Text className="text-foreground text-sm font-medium">
+										History
+									</Text>
+								</Pressable>
+							) : null}
 							{role === "admin" && (
 								<Pressable
 									onPress={() => router.push("/admin")}
@@ -136,6 +163,30 @@ const Dashboard = () => {
 							)}
 						</View>
 					</View>
+
+					{activeRun && activeRun.route ? (
+						<View className="mx-6 mt-6">
+							<Pressable
+								onPress={() =>
+									router.push(`/dashboard/active-run?runId=${activeRun._id}`)
+								}
+								className="flex-row items-center gap-4 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-4"
+							>
+								<View className="h-10 w-10 items-center justify-center rounded-xl bg-blue-100">
+									<Lucide name="play" size={20} color="#2563eb" />
+								</View>
+								<View className="flex-1 gap-0.5">
+									<Text className="text-blue-700 text-sm font-semibold">
+										Active Route: {activeRun.route.name}
+									</Text>
+									<Text className="text-blue-500 text-xs">
+										Tap to continue
+									</Text>
+								</View>
+								<Lucide name="arrow-right" size={20} color="#60a5fa" />
+							</Pressable>
+						</View>
+					) : null}
 
 					{rawRoutes && rawRoutes.length > 0 && (
 						<View className="mt-8 px-6">

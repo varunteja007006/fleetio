@@ -8,10 +8,21 @@
     "scheme": "fleetio",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Fleetio uses your location to track route progress and verify checkpoint visits.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Fleetio needs background location to continue tracking while the app is in the background.",
+        "UIBackgroundModes": ["location", "fetch"]
+      }
     },
     "android": {
       "package": "com.fleetio.app",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE_LOCATION"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -26,6 +37,14 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Fleetio needs background location to track your route progress.",
+          "locationWhenInUsePermission": "Fleetio uses your location to verify checkpoint visits.",
+          "isAndroidBackgroundLocationEnabled": true
+        }
+      ],
       [
         "expo-splash-screen",
         {

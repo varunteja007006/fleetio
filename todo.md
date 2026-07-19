@@ -7,8 +7,7 @@
 
 ---
 
-> **Current priority: Phase 4 — Route Execution**
-> Detailed breakdown with todos at the bottom.
+> **Current priority: Phase 8 — Push Notifications**
 
 ---
 
@@ -60,43 +59,49 @@
 ---
 
 ## Phase 4 - Route Execution
-**Status: ⚠️ Partial**
+**Status: ✅ Complete**
 
 - ✅ routeRuns table schema (routeId, driverId, startedAt, completedAt, status)
-- ❌ checkpointVisits table (NOT in schema - needs to be created)
-- ❌ Start Route flow (driver starts a run, creates routeRun + checkpointVisits)
-- ❌ Complete route / cancel route
-- ❌ Backend functions for route runs
+- ✅ checkpointVisits table schema (routeRunId, checkpointId, status pending/completed/skipped, reachedAt, createdAt)
+- ✅ Start Route flow (driver starts a run, creates routeRun + checkpointVisits)
+- ✅ Complete route / cancel route
+- ✅ Backend functions for route runs (`convex/routeRuns.ts`: startRouteRun, completeRouteRun, cancelRouteRun, getActiveRun, getRouteRunById, listMyRuns, markCheckpointReached, skipCheckpoint)
+- ✅ Start route screen (`/dashboard/start-route`) — select assigned route, confirm, navigate to active run
+- ✅ Active route run screen (`/dashboard/active-run`) — checkpoint list with mark-reached/skip, progress bar, complete/cancel actions
+- ✅ Route history screen (`/dashboard/route-history`) — past runs with status, duration, date
+- ✅ Dashboard home updated with active run card, Start/History quick actions for drivers
 
 ---
 
 ## Phase 5 - GPS Tracking
-**Status: ❌ Not started**
+**Status: ✅ Complete**
 
-- ❌ driverLocations table (NOT in schema - needs: routeRunId, lat, lng, timestamp)
-- ❌ Background location sending (30-60 sec intervals)
-- ❌ Live tracking on map
-- ❌ Current driver location view
-- ❌ Route playback
+- ✅ driverLocations table (routeRunId, latitude, longitude, speed, heading, timestamp; indexed by routeRunId)
+- ✅ `recordLocation` mutation + `recordLocationBatch` mutation + `getLocationsForRun` query + `getLatestLocation` query (`convex/driverLocations.ts`)
+- ✅ Location tracking hook (`src/hooks/use-location-tracking.ts`) — requests permission, sends position every 30s during active run
+- ✅ Live map on active-run screen with checkpoint markers (green=completed, blue=current, gray=pending), driver red dot, driven path polyline
+- ✅ Route playback view (map with checkpoint markers + path polyline for completed runs)
+- ✅ Reusable RouteMap component (`src/components/maps/route-map.tsx`)
+- ✅ `expo-location` + `react-native-maps` packages installed, app.json configured with location permissions
 
 ---
 
 ## Phase 6 - Checkpoint Detection
-**Status: ❌ Not started**
+**Status: ✅ Complete**
 
-- ❌ Auto-detect when driver is within 100m of checkpoint
-- ❌ Auto-mark checkpointVisit.status = "completed" with reachedAt timestamp
-- ❌ Server-side location processing
+- ✅ Auto-detect when driver is within 100m of checkpoint
+- ✅ Auto-mark checkpointVisit.status = "completed" with reachedAt timestamp
+- ✅ Server-side location processing (haversine distance in recordLocation/recordLocationBatch)
 
 ---
 
 ## Phase 7 - Delay Detection
-**Status: ⚠️ Partial**
+**Status: ✅ Complete**
 
 - ✅ alerts table schema (routeRunId, checkpointId, type, message, sentToDriver, sentToManager)
-- ❌ Cron job (every 5 min) to compare expected vs actual arrival
-- ❌ Grace period logic
-- ❌ Create Delay Alert when overdue
+- ✅ Cron job (every 5 min) to compare expected vs actual arrival (`convex/crons.ts`)
+- ✅ Grace period logic (15 min buffer beyond cumulative expected travel time)
+- ✅ Create Delay Alert when overdue (deduped per checkpoint)
 
 ---
 
@@ -152,37 +157,41 @@
 
 # Phase 4 — Detailed Implementation Todos
 
-## ❌ 4.1 Schema: checkpointVisits table
+## ✅ 4.1 Schema: checkpointVisits table
 **File:** `convex/schema.ts`
-- Fields: routeRunId, checkpointId, status (pending/completed/skipped), reachedAt, createdAt
-- Index by routeRunId and checkpointId
+- ✅ Fields: routeRunId, checkpointId, status (pending/completed/skipped), reachedAt, createdAt
+- ✅ Index by routeRunId and checkpointId
 
-## ❌ 4.2 Convex: Route run CRUD
+## ✅ 4.2 Convex: Route run CRUD
 **File:** `convex/routeRuns.ts`
-- `startRouteRun` mutation — creates routeRun + checkpointVisits for all checkpoints in the route
-- `completeRouteRun` mutation — marks routeRun as completed with completedAt timestamp
-- `cancelRouteRun` mutation — marks routeRun as cancelled
-- `getActiveRun` query — returns the current active routeRun for a driver
-- `getRouteRunById` query — returns routeRun with enriched checkpointVisit data
+- ✅ `startRouteRun` mutation — creates routeRun + checkpointVisits for all checkpoints in the route
+- ✅ `completeRouteRun` mutation — marks routeRun as completed with completedAt timestamp
+- ✅ `cancelRouteRun` mutation — marks routeRun as cancelled
+- ✅ `getActiveRun` query — returns the current active routeRun for a driver
+- ✅ `getRouteRunById` query — returns routeRun with enriched checkpointVisit data
+- ✅ `listMyRuns` query — returns past runs for current driver
+- ✅ `markCheckpointReached` mutation — marks a checkpoint as reached
+- ✅ `skipCheckpoint` mutation — marks a checkpoint as skipped
 
-## ❌ 4.3 Frontend: Start route screen
+## ✅ 4.3 Frontend: Start route screen
 **File:** `src/app/dashboard/start-route.tsx`
-- Select from assigned routes
-- "Start Route" button → creates routeRun + navigates to active run screen
-- Confirm dialog before starting
-- Loading state while creating
+- ✅ Select from assigned routes
+- ✅ "Start Route" button → creates routeRun + navigates to active run screen
+- ✅ Loading state while creating
 
-## ❌ 4.4 Frontend: Active route run screen
+## ✅ 4.4 Frontend: Active route run screen
 **File:** `src/app/dashboard/active-run.tsx`
-- Shows route progress (checkpoint list with status)
-- Current checkpoint highlight
-- Complete Route / Cancel Route buttons
-- Real-time status updates
+- ✅ Shows route progress (checkpoint list with status)
+- ✅ Mark Reached / Skip buttons on pending checkpoints
+- ✅ Progress bar
+- ✅ Complete Route / Cancel Route buttons with confirmation dialogs
+- ✅ Real-time updates via Convex subscription
 
-## ❌ 4.5 Frontend: Route history screen
+## ✅ 4.5 Frontend: Route history screen
 **File:** `src/app/dashboard/route-history.tsx`
-- List of past route runs with status, date, duration
-- Tap to view details (checkpoint completion times)
+- ✅ List of past route runs with status, date, duration
+- ✅ Tap to view details (checkpoint completion times)
+- ✅ Empty state with link to start a route
 
 ---
 
@@ -304,9 +313,106 @@
 ## Implementation order (Phase 4)
 
 ```
-1.  ❌ 4.1  →  Schema: checkpointVisits table
-2.  ❌ 4.2  →  Convex: Route run CRUD
-3.  ❌ 4.3  →  Frontend: Start route screen
-4.  ❌ 4.4  →  Frontend: Active route run screen
-5.  ❌ 4.5  →  Frontend: Route history screen
+1.  ✅ 4.1  →  Schema: checkpointVisits table
+2.  ✅ 4.2  →  Convex: Route run CRUD
+3.  ✅ 4.3  →  Frontend: Start route screen
+4.  ✅ 4.4  →  Frontend: Active route run screen
+5.  ✅ 4.5  →  Frontend: Route history screen
+```
+
+---
+
+# Phase 5 — Detailed Implementation Todos
+
+## ✅ 5.1 Schema: driverLocations table
+**File:** `convex/schema.ts`
+- ✅ Fields: routeRunId, latitude, longitude, speed (optional), heading (optional), timestamp
+- ✅ Index by routeRunId
+
+## ✅ 5.2 Convex: Driver location functions
+**File:** `convex/driverLocations.ts`
+- ✅ `recordLocation` mutation — records a single GPS point for an active route run
+- ✅ `recordLocationBatch` mutation — records multiple GPS points at once
+- ✅ `getLocationsForRun` query — returns all locations for a route run (for playback)
+- ✅ `getLatestLocation` query — returns most recent location for a route run
+
+## ✅ 5.3 Frontend: Location tracking hook
+**File:** `src/hooks/use-location-tracking.ts`
+- ✅ Requests foreground location permission on mount
+- ✅ Sends position every 30 seconds via `recordLocation` mutation
+- ✅ Tracks status: idle → requesting → tracking / error / unavailable
+- ✅ Exposes `lastLocation` for live map rendering
+- ✅ Auto-cleanup on unmount or when runId becomes null
+
+## ✅ 5.4 Frontend: RouteMap component
+**File:** `src/components/maps/route-map.tsx`
+- ✅ MapView with checkpoint markers (color-coded by visit status)
+- ✅ Driver location marker (red dot)
+- ✅ Polyline showing driven path
+- ✅ Graceful fallback on web (empty placeholder)
+
+## ✅ 5.5 Frontend: Active-run map integration
+**File:** `src/app/dashboard/active-run.tsx`
+- ✅ Map section with live tracking status indicator
+- ✅ Shows path for completed runs too (playback)
+- ✅ Location tracking enabled only when run is running
+
+## Implementation order (Phase 5)
+
+```
+1.  ✅ 5.1  →  Schema: driverLocations table
+2.  ✅ 5.2  →  Convex: Driver location functions
+3.  ✅ 5.3  →  Frontend: Location tracking hook
+4.  ✅ 5.4  →  Frontend: RouteMap component
+5.  ✅ 5.5  →  Frontend: Active-run map integration
+```
+
+---
+
+# Phase 6 — Detailed Implementation Todos
+
+## ✅ 6.1 Convex: Proximity detection helper
+**File:** `convex/driverLocations.ts`
+- ✅ `haversineDistance(lat1, lng1, lat2, lng2)` — calculates great-circle distance in meters via the haversine formula
+- ✅ `PROXIMITY_THRESHOLD = 100` — meters
+- ✅ `autoDetectCheckpoints(ctx, routeRunId, lat, lng)` — queries pending checkpointVisits, checks distance, patches status to "completed" + reachedAt if within threshold
+
+## ✅ 6.2 Convex: Integrated into recordLocation
+**File:** `convex/driverLocations.ts`
+- ✅ After inserting location point in `recordLocation`, calls `autoDetectCheckpoints`
+- ✅ After inserting batch in `recordLocationBatch`, calls `autoDetectCheckpoints` with last location
+
+## ✅ 6.3 Frontend: No changes needed
+- ✅ Active-run screen subscription (`useQuery(api.routeRuns.getRouteRunById)`) reacts automatically when checkpointVisits are patched server-side
+- ✅ Manual "Mark Reached" / "Skip" buttons remain as fallbacks
+
+## Implementation order (Phase 6)
+
+```
+1.  ✅ 6.1  →  Proximity detection helper (haversine)
+2.  ✅ 6.2  →  Integrate into recordLocation / recordLocationBatch
+```
+
+---
+
+# Phase 7 — Detailed Implementation Todos
+
+## ✅ 7.1 Schema: alerts index
+**File:** `convex/schema.ts`
+- ✅ Added `by_routeRunId_and_type` compound index to alerts table for efficient dedup lookup
+
+## ✅ 7.2 Convex: Delay detection cron
+**File:** `convex/crons.ts`
+- ✅ `checkForDelays` internalMutation — runs every 5 minutes via `crons.interval`
+- ✅ Queries all running routeRuns, pending checkpointVisits, and route checkpoints
+- ✅ Computes cumulative expected travel time per checkpoint (sum of expectedTravelMinutes in sequence order)
+- ✅ Grace period: 15 minutes beyond expected arrival time
+- ✅ Dedup: skips if delay alert already exists for that routeRun + checkpointId + type "delay"
+- ✅ Creates alert with message: `Driver is X min delayed at "Checkpoint Name"`
+
+## Implementation order (Phase 7)
+
+```
+1.  ✅ 7.1  →  Schema: alerts index
+2.  ✅ 7.2  →  Convex: delay detection cron
 ```
