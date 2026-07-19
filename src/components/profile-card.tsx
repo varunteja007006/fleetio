@@ -42,16 +42,16 @@ function ProfileCardSkeleton() {
 }
 
 export default function ProfileCard({ profile, session }: ProfileCardProps) {
-	if (profile === undefined) {
-		return <ProfileCardSkeleton />;
-	}
-
 	const avatarUrl = useQuery(
 		api.profile.getStorageUrl,
 		profile?.avatarStorageId
 			? { storageId: profile.avatarStorageId }
 			: "skip",
 	);
+
+	if (profile === undefined) {
+		return <ProfileCardSkeleton />;
+	}
 
 	const firstName = profile?.firstName ?? "";
 	const lastName = profile?.lastName ?? "";

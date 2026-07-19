@@ -40,9 +40,7 @@ export default function EditProfileScreen() {
 
 	const avatarUrl = useQuery(
 		api.profile.getStorageUrl,
-		profile?.avatarStorageId
-			? { storageId: profile.avatarStorageId }
-			: "skip",
+		profile?.avatarStorageId ? { storageId: profile.avatarStorageId } : "skip",
 	);
 
 	const [isUploading, setIsUploading] = useState(false);
@@ -404,7 +402,7 @@ export default function EditProfileScreen() {
 				<Pressable
 					onPress={async () => form.handleSubmit()}
 					disabled={isSubmitting}
-					className={`bg-primary mt-12 rounded-lg py-3 ${
+					className={`bg-primary mb-12 mt-4 rounded-lg py-3 ${
 						isSubmitting ? "opacity-60" : "active:opacity-80"
 					}`}
 				>
