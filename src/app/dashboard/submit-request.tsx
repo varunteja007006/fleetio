@@ -1,6 +1,7 @@
 import { api } from "@/convex/_generated/api";
 import Luicide from "@react-native-vector-icons/lucide";
 import { useMutation } from "convex/react";
+import * as ImagePicker from "expo-image-picker";
 import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -14,11 +15,20 @@ import {
 	View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import * as ImagePicker from "expo-image-picker";
 
 const REQUEST_TYPES = [
-	{ value: "feedback", label: "Feedback", icon: "message-circle" as const, color: "#3b82f6" },
-	{ value: "feature_request", label: "Feature Request", icon: "sparkles" as const, color: "#8b5cf6" },
+	{
+		value: "feedback",
+		label: "Feedback",
+		icon: "message-circle" as const,
+		color: "#3b82f6",
+	},
+	{
+		value: "feature_request",
+		label: "Feature Request",
+		icon: "sparkles" as const,
+		color: "#8b5cf6",
+	},
 	{ value: "bug", label: "Bug Report", icon: "bug" as const, color: "#ef4444" },
 ] as const;
 
@@ -36,8 +46,7 @@ export default function SubmitRequestScreen() {
 	const [images, setImages] = useState<{ uri: string }[]>([]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	const canSubmit =
-		requestType !== null && description.trim().length >= 10;
+	const canSubmit = requestType !== null && description.trim().length >= 10;
 
 	const pickImages = async () => {
 		const remaining = MAX_IMAGES - images.length;
@@ -101,9 +110,11 @@ export default function SubmitRequestScreen() {
 				imageStorageIds,
 			});
 
-			Alert.alert("Request submitted", "Thank you for your feedback! We'll review it shortly.", [
-				{ text: "OK", onPress: () => router.back() },
-			]);
+			Alert.alert(
+				"Request submitted",
+				"Thank you for your feedback! We'll review it shortly.",
+				[{ text: "OK", onPress: () => router.back() }],
+			);
 		} catch (error) {
 			Alert.alert(
 				"Failed to submit",
@@ -127,7 +138,7 @@ export default function SubmitRequestScreen() {
 				</Text>
 			</View>
 
-			<ScrollView className="flex-1 px-6 pb-8">
+			<ScrollView className="px-6 pb-8">
 				<Text className="text-muted-foreground mb-6 mt-2 text-sm">
 					Select a request type and describe what's on your mind.
 				</Text>
@@ -145,9 +156,7 @@ export default function SubmitRequestScreen() {
 								onPress={() => setRequestType(type.value)}
 								disabled={isSubmitting}
 								className={`flex-1 items-center rounded-xl border p-3 ${
-									isSelected
-										? "border-2"
-										: "border-border"
+									isSelected ? "border-2" : "border-border"
 								}`}
 								style={{
 									borderColor: isSelected ? type.color : undefined,
