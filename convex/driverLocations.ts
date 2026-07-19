@@ -165,7 +165,7 @@ export const getLocationsForRun = query({
 		routeRunId: v.id("routeRuns"),
 	},
 	handler: async (ctx, args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
 		if (!user) {
 			throw new Error("Not authenticated");
 		}
@@ -207,7 +207,7 @@ export const getLatestLocation = query({
 		routeRunId: v.id("routeRuns"),
 	},
 	handler: async (ctx, args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
 		if (!user) {
 			return null;
 		}

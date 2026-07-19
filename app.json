@@ -57,6 +57,7 @@
       ],
       "expo-notifications",
       "expo-secure-store",
+      "expo-image-picker",
       "@react-native-vector-icons/lucide",
       [
         "expo-font",

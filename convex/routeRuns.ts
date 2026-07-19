@@ -155,7 +155,7 @@ export const cancelRouteRun = mutation({
 export const getActiveRun = query({
 	args: {},
 	handler: async (ctx, _args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
 		if (!user) {
 			return null;
 		}

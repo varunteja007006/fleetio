@@ -2,7 +2,7 @@ import { api } from "@/convex/_generated/api";
 import { Lucide } from "@react-native-vector-icons/lucide";
 import { useQuery } from "convex/react";
 import { Link, Stack, useRouter } from "expo-router";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 function getGreeting() {
@@ -10,6 +10,74 @@ function getGreeting() {
 	if (hour < 12) return "Good morning";
 	if (hour < 17) return "Good afternoon";
 	return "Good evening";
+}
+
+function UserCardSkeleton() {
+	return (
+		<View className="bg-primary px-6 pb-14 pt-6">
+			<View className="flex-row items-center gap-4">
+				<View className="h-20 w-20 rounded-full bg-white/10" />
+				<View className="flex-1 gap-2 py-1">
+					<View className="h-3 w-24 rounded bg-white/10" />
+					<View className="h-7 w-44 rounded bg-white/10" />
+					<View className="h-5 w-16 rounded-md bg-white/10" />
+				</View>
+			</View>
+		</View>
+	);
+}
+
+function UserCard({ profile }: { profile: { firstName?: string | null; lastName?: string | null; role?: string | null; avatarStorageId?: string | null } | null }) {
+	const avatarUrl = useQuery(
+		api.profile.getStorageUrl,
+		profile?.avatarStorageId
+			? { storageId: profile.avatarStorageId }
+			: "skip",
+	);
+	const firstName = profile?.firstName ?? "";
+	const lastName = profile?.lastName ?? "";
+	const displayName = firstName ? `${firstName} ${lastName}`.trim() : "there";
+	const role = profile?.role ?? "";
+	const roleLabel = role === "new_user" ? "NEW" : role.toUpperCase();
+	const initial = displayName === "there" ? "?" : displayName[0].toUpperCase();
+
+	return (
+		<View className="bg-primary px-6 pb-14 pt-6">
+			<View className="flex-row items-center gap-4">
+				{avatarUrl ? (
+					<Image
+						source={{ uri: avatarUrl }}
+						className="h-20 w-20 rounded-full"
+						resizeMode="cover"
+					/>
+				) : (
+					<View className="h-20 w-20 items-center justify-center rounded-full bg-white/20">
+						<Text className="text-primary-foreground text-2xl font-bold">
+							{initial}
+						</Text>
+					</View>
+				)}
+				<View className="flex-1 gap-1">
+					<Text className="text-primary-foreground/70 text-sm">
+						{getGreeting()},
+					</Text>
+					<Text
+						className="text-primary-foreground text-2xl font-bold"
+						numberOfLines={1}
+					>
+						{displayName}
+					</Text>
+					<View className="flex-row items-center gap-2">
+						<View className="rounded-md bg-white/20 px-2.5 py-0.5">
+							<Text className="text-primary-foreground text-xs font-semibold">
+								{roleLabel}
+							</Text>
+						</View>
+					</View>
+				</View>
+			</View>
+		</View>
+	);
 }
 
 const Dashboard = () => {
@@ -30,45 +98,17 @@ const Dashboard = () => {
 		? (allRoutes?.length ?? 0)
 		: (assignments?.filter((a) => a.active)?.length ?? 0);
 	const activeRun = useQuery(api.routeRuns.getActiveRun);
-	const firstName = userProfile?.firstName ?? "";
-	const lastName = userProfile?.lastName ?? "";
-	const displayName = firstName ? `${firstName} ${lastName}`.trim() : "there";
-	const roleLabel = role === "new_user" ? "NEW" : role.toUpperCase();
-	const initial = displayName === "there" ? "?" : displayName[0].toUpperCase();
-	const noFirstName = !firstName;
 
 	return (
 		<>
 			<Stack.Screen options={{ headerShown: false }} />
 			<SafeAreaView>
 				<ScrollView showsVerticalScrollIndicator={false}>
-					<View className="bg-primary px-6 pb-14 pt-6">
-						<View className="flex-row items-center gap-4">
-							<View className="h-14 w-14 items-center justify-center rounded-full bg-white/20">
-								<Text className="text-primary-foreground text-xl font-bold">
-									{initial}
-								</Text>
-							</View>
-							<View className="flex-1 gap-1">
-								<Text className="text-primary-foreground/70 text-sm">
-									{getGreeting()},
-								</Text>
-								<Text
-									className="text-primary-foreground text-2xl font-bold"
-									numberOfLines={1}
-								>
-									{displayName}
-								</Text>
-								<View className="flex-row items-center gap-2">
-									<View className="rounded-md bg-white/20 px-2.5 py-0.5">
-										<Text className="text-primary-foreground text-xs font-semibold">
-											{roleLabel}
-										</Text>
-									</View>
-								</View>
-							</View>
-						</View>
-					</View>
+					{userProfile === undefined ? (
+						<UserCardSkeleton />
+					) : (
+						<UserCard profile={userProfile} />
+					)}
 
 					<View className="-mt-8 flex-row gap-3 px-6">
 						<View className="flex-1 rounded-2xl border border-border bg-card p-4 shadow-sm">
@@ -250,7 +290,7 @@ const Dashboard = () => {
 						</View>
 					)}
 
-					{noFirstName && (
+					{userProfile !== undefined && !userProfile?.firstName && (
 						<Pressable
 							onPress={() => router.push("/dashboard/(tabs)/profile")}
 							className="mx-6 mt-6 flex-row items-center gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-4"

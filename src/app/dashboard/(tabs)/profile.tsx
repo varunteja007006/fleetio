@@ -75,7 +75,10 @@ export default function ProfileScreen() {
 				<ScrollView className="px-6 py-6">
 					{/* Profile Header */}
 					<View className="mb-6">
-						<ProfileCard profile={userProfile} session={session} />
+						<ProfileCard
+							profile={userProfile}
+							session={session}
+						/>
 					</View>
 
 					{/* Account Section */}

@@ -1,4 +1,6 @@
-import { Text, View } from "react-native";
+import { api } from "@/convex/_generated/api";
+import { useQuery } from "convex/react";
+import { Image, Text, View } from "react-native";
 
 type Profile = {
 	firstName?: string | null;
@@ -7,6 +9,7 @@ type Profile = {
 	phoneNumber?: string | null;
 	role?: string | null;
 	status?: string | null;
+	avatarStorageId?: string | null;
 };
 
 type Session = {
@@ -15,21 +18,41 @@ type Session = {
 } | null;
 
 interface ProfileCardProps {
-	/** The Convex profile document (returned from api.profile.getUserProfile) */
 	profile?: Profile | null;
-	/** The Better Auth session data (returned from authClient.useSession()) */
 	session?: Session | null;
 }
 
-/**
- * A reusable card that displays details about the currently logged-in user,
- * including their avatar (initials), full name, email, role, and status badge.
- *
- * Use on the home screen to show user info at a glance, or embed it in the
- * profile screen for a compact information header. Does NOT include a sign-out
- * button — pair with `<SignOutButton>` when needed.
- */
+function ProfileCardSkeleton() {
+	return (
+		<View className="w-full rounded-2xl border border-gray-500/20 bg-white/5 p-5 shadow-sm">
+			<View className="flex-row items-center gap-4">
+				<View className="h-20 w-20 rounded-full bg-gray-500/10" />
+				<View className="flex-1 gap-2 py-1">
+					<View className="h-5 w-40 rounded bg-gray-500/10" />
+					<View className="h-4 w-56 rounded bg-gray-500/10" />
+					<View className="h-3 w-32 rounded bg-gray-500/10" />
+					<View className="mt-1 flex-row gap-2">
+						<View className="h-5 w-12 rounded-md bg-gray-500/10" />
+						<View className="h-5 w-20 rounded-md bg-gray-500/10" />
+					</View>
+				</View>
+			</View>
+		</View>
+	);
+}
+
 export default function ProfileCard({ profile, session }: ProfileCardProps) {
+	if (profile === undefined) {
+		return <ProfileCardSkeleton />;
+	}
+
+	const avatarUrl = useQuery(
+		api.profile.getStorageUrl,
+		profile?.avatarStorageId
+			? { storageId: profile.avatarStorageId }
+			: "skip",
+	);
+
 	const firstName = profile?.firstName ?? "";
 	const lastName = profile?.lastName ?? "";
 	const fullName =
@@ -46,14 +69,19 @@ export default function ProfileCard({ profile, session }: ProfileCardProps) {
 
 	return (
 		<View className="w-full rounded-2xl border border-gray-500/20 bg-white/5 p-5 shadow-sm">
-			{/* User Info Row */}
 			<View className="flex-row items-center gap-4">
-				{/* Avatar */}
-				<View className="h-14 w-14 items-center justify-center rounded-full border border-gray-500/30 bg-gray-500/10">
-					<Text className="text-foreground text-xl font-bold">{initial}</Text>
-				</View>
+				{avatarUrl ? (
+					<Image
+						source={{ uri: avatarUrl }}
+						className="h-20 w-20 rounded-full"
+						resizeMode="cover"
+					/>
+				) : (
+					<View className="h-20 w-20 items-center justify-center rounded-full border border-gray-500/30 bg-gray-500/10">
+						<Text className="text-foreground text-3xl font-bold">{initial}</Text>
+					</View>
+				)}
 
-				{/* Details */}
 				<View className="flex-1 gap-0.5">
 					<Text className="text-foreground text-lg font-semibold">
 						{displayName}
@@ -71,7 +99,6 @@ export default function ProfileCard({ profile, session }: ProfileCardProps) {
 						</Text>
 					)}
 
-					{/* Role + Status row */}
 					<View className="mt-1 flex-row items-center gap-2">
 						{role ? (
 							<View className="rounded-md bg-gray-500/15 px-2 py-0.5">

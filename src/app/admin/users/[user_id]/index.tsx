@@ -6,6 +6,7 @@ import { useState } from "react";
 import {
 	ActivityIndicator,
 	Alert,
+	Image,
 	Pressable,
 	ScrollView,
 	Text,
@@ -65,6 +66,12 @@ export default function AdminUserDetailScreen() {
 	const profile = useQuery(
 		api.profile.getUserProfileById,
 		userId ? { id: userId as Id<"profiles"> } : "skip",
+	);
+	const avatarUrl = useQuery(
+		api.profile.getStorageUrl,
+		profile?.avatarStorageId
+			? { storageId: profile.avatarStorageId }
+			: "skip",
 	);
 	const updateUserStatus = useMutation(api.profile.updateUserStatus);
 	const updateUserRole = useMutation(api.profile.updateUserRole);
@@ -171,8 +178,21 @@ export default function AdminUserDetailScreen() {
 			>
 				{/* ---- Header ---- */}
 				<View className="flex-row items-start justify-between">
-					<View className="flex-1 pr-4">
-						<Text className="text-foreground text-2xl font-bold">
+					<View className="flex-1 flex-row items-center gap-3 pr-4">
+						{avatarUrl ? (
+							<Image
+								source={{ uri: avatarUrl }}
+								className="h-12 w-12 rounded-full"
+								resizeMode="cover"
+							/>
+						) : (
+							<View className="h-12 w-12 items-center justify-center rounded-full border border-gray-500/30 bg-gray-500/10">
+								<Text className="text-foreground text-lg font-bold">
+									{userName[0]?.toUpperCase() ?? "?"}
+								</Text>
+							</View>
+						)}
+						<Text className="text-foreground flex-1 text-2xl font-bold">
 							{userName}
 						</Text>
 					</View>

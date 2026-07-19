@@ -36,6 +36,8 @@ export default defineSchema({
 
 		notificationsEnabled: v.optional(v.boolean()),
 
+		avatarStorageId: v.optional(v.string()),
+
 		isDeleted: v.boolean(),
 	}).index("by_auth_user", ["authUserId"])
 		.index("by_status", ["status"])
@@ -182,8 +184,10 @@ export default defineSchema({
 		),
 		description: v.string(),
 		imageStorageIds: v.array(v.string()),
+		isDeleted: v.boolean(),
 		createdAt: v.number(),
-	}).index("by_auth_user", ["authUserId"]),
+	}).index("by_auth_user", ["authUserId"])
+		.index("by_auth_user_and_isDeleted", ["authUserId", "isDeleted"]),
 
 	supportMessages: defineTable({
 		authUserId: v.string(),

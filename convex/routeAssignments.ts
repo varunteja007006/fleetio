@@ -5,9 +5,9 @@ import { authComponent } from "./auth";
 export const listByDriver = query({
 	args: {},
 	handler: async (ctx, _args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
 		if (!user) {
-			throw new Error("Not authenticated");
+			return [];
 		}
 
 		const profile = await ctx.db
@@ -16,7 +16,7 @@ export const listByDriver = query({
 			.first();
 
 		if (!profile) {
-			throw new Error("Profile not found");
+			return [];
 		}
 
 		const assignments = await ctx.db
@@ -38,7 +38,7 @@ export const listByDriver = query({
 export const listAll = query({
 	args: {},
 	handler: async (ctx, _args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
 		if (!user) {
 			throw new Error("Not authenticated");
 		}
@@ -76,7 +76,7 @@ export const create = mutation({
 		routeId: v.id("routes"),
 	},
 	handler: async (ctx, args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
 		if (!user) {
 			throw new Error("Not authenticated");
 		}
@@ -118,7 +118,7 @@ export const remove = mutation({
 		assignmentId: v.id("routeAssignments"),
 	},
 	handler: async (ctx, args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
 		if (!user) {
 			throw new Error("Not authenticated");
 		}
@@ -147,7 +147,7 @@ export const getActiveAssignmentForRoute = query({
 		routeId: v.id("routes"),
 	},
 	handler: async (ctx, args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
 		if (!user) {
 			return null;
 		}

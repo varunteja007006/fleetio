@@ -1,11 +1,14 @@
 import { api } from "@/convex/_generated/api";
 import Luicide from "@react-native-vector-icons/lucide";
 import { useMutation, useQuery } from "convex/react";
+import * as FileSystem from "expo-file-system/legacy";
+import * as ImagePicker from "expo-image-picker";
 import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
 import {
 	ActivityIndicator,
 	Alert,
+	Image,
 	Pressable,
 	ScrollView,
 	Text,
@@ -31,6 +34,85 @@ export default function EditProfileScreen() {
 	const { isLoading: isAuthLoading } = useAuthGuard();
 	const profile = useQuery(api.profile.getUserProfile);
 	const updateProfile = useMutation(api.profile.updateProfile);
+	const getUploadUrl = useMutation(api.profile.getProfilePictureUploadUrl);
+	const updateProfilePicture = useMutation(api.profile.updateProfilePicture);
+	const removeProfilePicture = useMutation(api.profile.removeProfilePicture);
+
+	const avatarUrl = useQuery(
+		api.profile.getStorageUrl,
+		profile?.avatarStorageId
+			? { storageId: profile.avatarStorageId }
+			: "skip",
+	);
+
+	const [isUploading, setIsUploading] = useState(false);
+
+	const handlePickImage = async () => {
+		const result = await ImagePicker.launchImageLibraryAsync({
+			mediaTypes: ["images"],
+			allowsEditing: true,
+			aspect: [1, 1],
+			quality: 0.7,
+		});
+
+		if (result.canceled) return;
+		setIsUploading(true);
+		try {
+			const { uri } = result.assets[0];
+			const uploadUrl = await getUploadUrl();
+			const ext = uri.split(".").pop()?.toLowerCase();
+			const mimeType =
+				ext === "png"
+					? "image/png"
+					: ext === "gif"
+						? "image/gif"
+						: ext === "webp"
+							? "image/webp"
+							: "image/jpeg";
+
+			const uploadResult = await FileSystem.uploadAsync(uploadUrl, uri, {
+				httpMethod: "POST",
+				uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
+				headers: { "Content-Type": mimeType },
+			});
+
+			const { storageId } = JSON.parse(uploadResult.body);
+			await updateProfilePicture({ storageId });
+		} catch (error) {
+			Alert.alert(
+				"Upload failed",
+				error instanceof Error ? error.message : "Could not upload image.",
+			);
+		} finally {
+			setIsUploading(false);
+		}
+	};
+
+	const handleRemovePicture = async () => {
+		Alert.alert(
+			"Remove Photo",
+			"Are you sure you want to remove your profile picture?",
+			[
+				{ text: "Cancel", style: "cancel" },
+				{
+					text: "Remove",
+					style: "destructive",
+					onPress: async () => {
+						try {
+							await removeProfilePicture();
+						} catch (error) {
+							Alert.alert(
+								"Error",
+								error instanceof Error
+									? error.message
+									: "Could not remove photo.",
+							);
+						}
+					},
+				},
+			],
+		);
+	};
 
 	if (isAuthLoading) {
 		return (
@@ -111,6 +193,57 @@ export default function EditProfileScreen() {
 				<Text className="text-muted-foreground mt-1 text-sm">
 					Update your personal information.
 				</Text>
+
+				{/* ---- Profile Photo ---- */}
+				<View className="bg-card border-border mt-5 rounded-xl border p-4">
+					<Text className="text-foreground mb-4 text-lg font-semibold">
+						Profile Photo
+					</Text>
+					<View className="items-center gap-3">
+						{avatarUrl ? (
+							<Image
+								source={{ uri: avatarUrl }}
+								className="h-24 w-24 rounded-full"
+								resizeMode="cover"
+							/>
+						) : (
+							<View className="h-24 w-24 items-center justify-center rounded-full border border-gray-500/30 bg-gray-500/10">
+								<Text className="text-foreground text-3xl font-bold">
+									{((profile?.firstName ?? "")
+										? (profile?.firstName?.[0] ?? "?")
+										: "?"
+									).toUpperCase()}
+								</Text>
+							</View>
+						)}
+						<View className="flex-row gap-3">
+							<Pressable
+								onPress={handlePickImage}
+								disabled={isUploading}
+								className="bg-primary rounded-lg px-5 py-2 active:opacity-80"
+							>
+								{isUploading ? (
+									<ActivityIndicator size="small" color="#ffffff" />
+								) : (
+									<Text className="text-primary-foreground text-sm font-medium">
+										{avatarUrl ? "Change Photo" : "Upload Photo"}
+									</Text>
+								)}
+							</Pressable>
+							{avatarUrl ? (
+								<Pressable
+									onPress={handleRemovePicture}
+									disabled={isUploading}
+									className="rounded-lg border border-red-500/30 px-5 py-2 active:opacity-80"
+								>
+									<Text className="text-red-500 text-sm font-medium">
+										Remove
+									</Text>
+								</Pressable>
+							) : null}
+						</View>
+					</View>
+				</View>
 
 				{/* ---- Personal Information ---- */}
 				<View className="bg-card border-border mt-5 rounded-xl border p-4">

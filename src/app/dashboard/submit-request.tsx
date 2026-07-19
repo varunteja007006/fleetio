@@ -1,13 +1,17 @@
 import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import Luicide from "@react-native-vector-icons/lucide";
-import { useMutation } from "convex/react";
+import { useMutation, usePaginatedQuery } from "convex/react";
+import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
 import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
 import {
 	ActivityIndicator,
 	Alert,
+	Dimensions,
 	Image,
+	Modal,
 	Pressable,
 	ScrollView,
 	Text,
@@ -15,6 +19,8 @@ import {
 	View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+const screenWidth = Dimensions.get("window").width;
 
 const REQUEST_TYPES = [
 	{
@@ -36,15 +42,44 @@ type RequestType = (typeof REQUEST_TYPES)[number]["value"];
 
 const MAX_IMAGES = 5;
 
+const REQUEST_TYPE_LABELS: Record<string, string> = {
+	feedback: "Feedback",
+	feature_request: "Feature Request",
+	bug: "Bug Report",
+};
+
+const REQUEST_TYPE_ICONS: Record<string, string> = {
+	feedback: "message-circle",
+	feature_request: "sparkles",
+	bug: "bug",
+};
+
+const REQUEST_TYPE_COLORS: Record<string, string> = {
+	feedback: "#3b82f6",
+	feature_request: "#8b5cf6",
+	bug: "#ef4444",
+};
+
 export default function SubmitRequestScreen() {
 	const router = useRouter();
 	const submitRequest = useMutation(api.requests.submitRequest);
 	const getUploadUrl = useMutation(api.requests.getUploadUrl);
+	const softDeleteRequest = useMutation(api.requests.softDeleteRequest);
+	const {
+		results: paginatedRequests,
+		status: paginatedStatus,
+		loadMore,
+	} = usePaginatedQuery(
+		api.requests.listMyRequests,
+		{},
+		{ initialNumItems: 5 },
+	);
 
 	const [requestType, setRequestType] = useState<RequestType | null>(null);
 	const [description, setDescription] = useState("");
 	const [images, setImages] = useState<{ uri: string }[]>([]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
 
 	const canSubmit = requestType !== null && description.trim().length >= 10;
 
@@ -75,22 +110,48 @@ export default function SubmitRequestScreen() {
 	const uploadImage = async (uri: string): Promise<string> => {
 		const uploadUrl = await getUploadUrl();
 
-		const response = await fetch(uri);
-		const blob = await response.blob();
+		const ext = uri.split(".").pop()?.toLowerCase();
+		const mimeType =
+			ext === "png"
+				? "image/png"
+				: ext === "gif"
+					? "image/gif"
+					: ext === "webp"
+						? "image/webp"
+						: "image/jpeg";
 
-		const uploadResponse = await fetch(uploadUrl, {
-			method: "POST",
-			headers: { "Content-Type": blob.type || "image/jpeg" },
-			body: blob,
+		const result = await FileSystem.uploadAsync(uploadUrl, uri, {
+			httpMethod: "POST",
+			uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
+			headers: { "Content-Type": mimeType },
 		});
 
-		if (!uploadResponse.ok) {
-			const text = await uploadResponse.text();
-			throw new Error(`Upload failed: ${text}`);
-		}
-
-		const { storageId } = await uploadResponse.json();
+		const { storageId } = JSON.parse(result.body);
 		return storageId as string;
+	};
+
+	const handleDeleteRequest = (requestId: Id<"requests">) => {
+		Alert.alert(
+			"Delete Request",
+			"Are you sure you want to delete this request? It will be hidden from your view but admins can still see it.",
+			[
+				{ text: "Cancel", style: "cancel" },
+				{
+					text: "Delete",
+					style: "destructive",
+					onPress: async () => {
+						try {
+							await softDeleteRequest({ requestId });
+						} catch (error) {
+							Alert.alert(
+								"Failed to delete",
+								error instanceof Error ? error.message : "Please try again.",
+							);
+						}
+					},
+				},
+			],
+		);
 	};
 
 	const handleSubmit = async () => {
@@ -254,7 +315,131 @@ export default function SubmitRequestScreen() {
 						</Text>
 					)}
 				</Pressable>
+
+				{paginatedStatus === "LoadingFirstPage" ? (
+					<ActivityIndicator className="mt-8" />
+				) : paginatedRequests.length > 0 ? (
+					<View className="mt-8">
+						<Text className="text-foreground mb-4 text-lg font-bold">
+							Submitted Requests
+						</Text>
+						{paginatedRequests.map((req) => (
+							<View
+								key={req._id}
+								className="border-border bg-card mb-3 rounded-xl border p-4"
+							>
+								<View className="mb-2 flex-row items-center gap-2">
+									<Luicide
+										name={
+											REQUEST_TYPE_ICONS[req.type] as "message-circle" | "sparkles" | "bug"
+										}
+										size={16}
+										color={REQUEST_TYPE_COLORS[req.type]}
+									/>
+									<View
+										className="rounded-full px-2.5 py-0.5"
+										style={{
+											backgroundColor:
+												REQUEST_TYPE_COLORS[req.type] + "20",
+										}}
+									>
+										<Text
+											className="text-xs font-medium"
+											style={{ color: REQUEST_TYPE_COLORS[req.type] }}
+										>
+											{REQUEST_TYPE_LABELS[req.type]}
+										</Text>
+									</View>
+									<Text className="text-muted-foreground ml-auto text-xs">
+										{new Date(req.createdAt).toLocaleDateString(undefined, {
+											month: "short",
+											day: "numeric",
+											year: "numeric",
+										})}
+									</Text>
+									<Pressable
+										onPress={() =>
+											handleDeleteRequest(req._id as Id<"requests">)
+										}
+										className="ml-2 p-1"
+									>
+										<Luicide name="trash-2" size={16} color="#ef4444" />
+									</Pressable>
+								</View>
+								<Text
+									className="text-foreground text-sm leading-5"
+									numberOfLines={3}
+								>
+									{req.description}
+								</Text>
+							{req.imageUrls && req.imageUrls.length > 0 && (
+								<View className="mt-3 flex-row flex-wrap gap-2">
+									{req.imageUrls.filter(Boolean).map((url, i) => (
+										<Pressable
+											key={i}
+											onPress={() => setSelectedImageUrl(url!)}
+										>
+											<Image
+												source={{ uri: url! }}
+												className="rounded-xl border border-white/10"
+												style={{ width: 64, height: 64 }}
+											/>
+										</Pressable>
+									))}
+								</View>
+							)}
+							</View>
+						))}
+						{paginatedStatus === "CanLoadMore" && (
+							<Pressable
+								onPress={() => loadMore(5)}
+								className="border-border bg-card mb-4 items-center rounded-xl border border-dashed px-4 py-3 active:opacity-70"
+							>
+								<Text className="text-muted-foreground text-sm font-medium">
+									Load More
+								</Text>
+							</Pressable>
+						)}
+						{paginatedStatus === "LoadingMore" && (
+							<ActivityIndicator className="mb-4" />
+						)}
+					</View>
+				) : null}
 			</ScrollView>
+
+			<Modal
+				visible={selectedImageUrl !== null}
+				transparent
+				animationType="fade"
+				onRequestClose={() => setSelectedImageUrl(null)}
+			>
+				<View className="flex-1 bg-black/70">
+					<View className="flex-1 items-center justify-center">
+						<Pressable
+							className="absolute right-6 top-16 z-10 h-9 w-9 items-center justify-center rounded-full bg-black/60"
+							onPress={() => setSelectedImageUrl(null)}
+						>
+							<Luicide name="x" size={20} color="#ffffff" />
+						</Pressable>
+						<Pressable
+							className="items-center justify-center"
+							onPress={() => setSelectedImageUrl(null)}
+						>
+							{selectedImageUrl && (
+								<Image
+									source={{ uri: selectedImageUrl }}
+									className="rounded-2xl"
+									style={{
+										width: screenWidth - 48,
+										height: screenWidth - 48,
+									}}
+									resizeMode="contain"
+								/>
+							)}
+						</Pressable>
+					</View>
+				</View>
+			</Modal>
 		</SafeAreaView>
 	);
 }

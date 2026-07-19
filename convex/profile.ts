@@ -234,3 +234,60 @@ export const getDrivers = query({
 	},
 });
 
+export const getProfilePictureUploadUrl = mutation({
+	args: {},
+	handler: async (ctx) => {
+		return await ctx.storage.generateUploadUrl();
+	},
+});
+
+export const updateProfilePicture = mutation({
+	args: {
+		storageId: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const user = await authComponent.getAuthUser(ctx);
+
+		const profile = await ctx.db
+			.query("profiles")
+			.withIndex("by_auth_user", (q) => q.eq("authUserId", user._id))
+			.first();
+
+		if (!profile) {
+			throw new Error("Profile not found");
+		}
+
+		await ctx.db.patch(profile._id, { avatarStorageId: args.storageId });
+		return profile._id;
+	},
+});
+
+export const removeProfilePicture = mutation({
+	args: {},
+	handler: async (ctx) => {
+		const user = await authComponent.getAuthUser(ctx);
+
+		const profile = await ctx.db
+			.query("profiles")
+			.withIndex("by_auth_user", (q) => q.eq("authUserId", user._id))
+			.first();
+
+		if (!profile) {
+			throw new Error("Profile not found");
+		}
+
+		await ctx.db.patch(profile._id, { avatarStorageId: undefined });
+		return profile._id;
+	},
+});
+
+export const getStorageUrl = query({
+	args: {
+		storageId: v.string(),
+	},
+	handler: async (ctx, args) => {
+		if (!args.storageId) return null;
+		return await ctx.storage.getUrl(args.storageId);
+	},
+});
+
