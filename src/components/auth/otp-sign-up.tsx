@@ -1,7 +1,4 @@
-import { api } from "@/convex/_generated/api";
 import { Lucide } from "@react-native-vector-icons/lucide";
-import { useQuery } from "convex/react";
-import { useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
 	ActivityIndicator,
@@ -11,16 +8,15 @@ import {
 	Pressable,
 	ScrollView,
 	Text,
-	TextInput,
 	View,
 } from "react-native";
 import z from "zod";
 
 import { useAppForm } from "~/components/forms/hooks";
 import { authClient } from "~/lib/auth-client";
+import OtpVerify from "~/components/auth/otp-verify";
 
 const COUNTRY_CODE = "+91";
-const OTP_LENGTH = 6;
 
 const schema = z.object({
 	phone: z
@@ -70,55 +66,6 @@ function StepIndicator({ step }: { step: number }) {
 				);
 			})}
 		</View>
-	);
-}
-
-function OtpInput({
-	value,
-	onChange,
-	disabled,
-}: {
-	value: string;
-	onChange: (v: string) => void;
-	disabled: boolean;
-}) {
-	const inputRef = useRef<TextInput>(null);
-	const digits = value.split("").concat(new Array(OTP_LENGTH - value.length).fill(""));
-
-	return (
-		<Pressable onPress={() => inputRef.current?.focus()} className="relative">
-			<TextInput
-				ref={inputRef}
-				value={value}
-				onChangeText={(t) => onChange(t.replace(/[^0-9]/g, "").slice(0, OTP_LENGTH))}
-				keyboardType="number-pad"
-				maxLength={OTP_LENGTH}
-				editable={!disabled}
-				className="absolute h-full w-full opacity-0"
-			/>
-			<View className="flex-row justify-center gap-3">
-				{digits.map((d, idx) => (
-					<View
-						key={idx}
-						className={`h-14 w-12 items-center justify-center rounded-xl border-2 ${
-							d
-								? "border-primary bg-primary/10"
-								: value.length === idx && !disabled
-									? "border-primary bg-card"
-									: "border-border bg-card"
-						}`}
-					>
-						<Text
-							className={`text-2xl font-bold ${
-								d ? "text-foreground" : "text-muted-foreground"
-							}`}
-						>
-							{d || ""}
-						</Text>
-					</View>
-				))}
-			</View>
-		</Pressable>
 	);
 }
 
@@ -178,24 +125,14 @@ function StatusMessage({ status }: { status: string }) {
 }
 
 export default function OtpSignUp() {
-	const router = useRouter();
-
 	const [countryCode] = useState(COUNTRY_CODE);
 	const [phone, setPhone] = useState("");
-	const [otp, setOtp] = useState("");
 	const [otpSent, setOtpSent] = useState(false);
 	const [status, setStatus] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
-	const [resendCountdown, setResendCountdown] = useState(0);
 
 	const slideAnim = useRef(new Animated.Value(0)).current;
 	const contentOpacity = useRef(new Animated.Value(1)).current;
-
-	const fullPhone = countryCode + phone;
-	const otpData = useQuery(
-		api.otp.getOtpByPhone,
-		otpSent && fullPhone.length > 0 ? { phoneNumber: fullPhone } : "skip",
-	);
 
 	const form = useAppForm({
 		defaultValues: {
@@ -237,65 +174,8 @@ export default function OtpSignUp() {
 			]).start();
 
 			setOtpSent(true);
-			setStatus("OTP sent successfully");
-			setResendCountdown(30);
 		},
 	});
-
-	useEffect(() => {
-		if (resendCountdown <= 0) return;
-		const timer = setInterval(() => {
-			setResendCountdown((prev) => (prev <= 1 ? 0 : prev - 1));
-		}, 1000);
-		return () => clearInterval(timer);
-	}, [resendCountdown]);
-
-	const handleVerifyOtp = async () => {
-		if (!otp || otp.length < OTP_LENGTH) {
-			setStatus("Please enter the complete code");
-			return;
-		}
-
-		setIsLoading(true);
-		setStatus("Verifying OTP...");
-
-		const { data: _data, error } = await authClient.phoneNumber.verify({
-			phoneNumber: countryCode + phone,
-			code: otp,
-		});
-
-		setIsLoading(false);
-
-		if (error) {
-			setStatus(error.message ?? "Failed to verify OTP");
-			return;
-		}
-
-		setStatus("Welcome to Fleetio!");
-		setTimeout(() => {
-			router.replace("/dashboard");
-		}, 800);
-	};
-
-	const handleResendOtp = async () => {
-		setOtp("");
-		setStatus("");
-		setIsLoading(true);
-
-		const { error } = await authClient.phoneNumber.sendOtp({
-			phoneNumber: fullPhone,
-		});
-
-		setIsLoading(false);
-
-		if (error) {
-			setStatus(error.message ?? "Failed to resend OTP");
-			return;
-		}
-
-		setStatus("OTP resent successfully");
-		setResendCountdown(30);
-	};
 
 	const slideTranslate = slideAnim.interpolate({
 		inputRange: [0, 1],
@@ -321,8 +201,6 @@ export default function OtpSignUp() {
 			}),
 		]).start();
 		setOtpSent(false);
-		setOtp("");
-		setStatus("");
 	}, [contentOpacity, slideAnim]);
 
 	return (
@@ -398,87 +276,11 @@ export default function OtpSignUp() {
 								</Pressable>
 							</View>
 						) : (
-							<View>
-								<View className="mb-6 flex-row items-center gap-3">
-									<Pressable
-										onPress={handleBackToPhone}
-										className="h-10 w-10 items-center justify-center rounded-xl bg-muted active:opacity-70"
-									>
-										<Lucide name="arrow-left" size={20} color="#9ca3af" />
-									</Pressable>
-									<View className="flex-1">
-										<Text className="text-foreground mb-0.5 text-2xl font-bold">
-											Enter code
-										</Text>
-										<Text className="text-muted-foreground text-sm">
-											Sent to {fullPhone}
-										</Text>
-									</View>
-								</View>
-
-								<StatusMessage status={status} />
-
-								<View className="mb-6">
-									<OtpInput
-										value={otp}
-										onChange={setOtp}
-										disabled={isLoading}
-									/>
-								</View>
-
-								{otpData && (
-									<View className="mb-5 rounded-xl border-2 border-dashed border-yellow-500/50 bg-yellow-500/10 p-4">
-										<Text className="mb-1.5 text-center text-xs font-medium text-yellow-600">
-											Dev OTP (tap to copy)
-										</Text>
-										<Text
-											className="text-center text-3xl font-bold tracking-[0.3em] text-yellow-600"
-											selectable
-										>
-											{otpData.code}
-										</Text>
-									</View>
-								)}
-
-								<Pressable
-									onPress={handleVerifyOtp}
-									disabled={isLoading || otp.length < OTP_LENGTH}
-									className={`bg-primary h-14 items-center justify-center rounded-xl ${
-										isLoading || otp.length < OTP_LENGTH
-											? "opacity-50"
-											: "active:scale-[0.98]"
-									}`}
-								>
-									{isLoading ? (
-										<ActivityIndicator color="#000" />
-									) : (
-										<Text className="text-primary-foreground text-base font-semibold">
-											Verify & Sign In
-										</Text>
-									)}
-								</Pressable>
-
-								<View className="mt-4 items-center">
-									{resendCountdown > 0 ? (
-										<Text className="text-muted-foreground text-sm">
-											Resend code in{" "}
-											<Text className="text-foreground font-semibold">
-												{resendCountdown}s
-											</Text>
-										</Text>
-									) : (
-										<Pressable
-											onPress={handleResendOtp}
-											disabled={isLoading}
-											className="active:opacity-70"
-										>
-											<Text className="text-primary text-sm font-semibold">
-												Resend code
-											</Text>
-										</Pressable>
-									)}
-								</View>
-							</View>
+							<OtpVerify
+								phone={phone}
+								countryCode={countryCode}
+								onBack={handleBackToPhone}
+							/>
 						)}
 					</Animated.View>
 
