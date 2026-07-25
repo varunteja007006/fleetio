@@ -95,7 +95,7 @@ export default function RouteHistoryScreen() {
 							<Pressable
 								key={run._id}
 								onPress={() =>
-									router.push(`/dashboard/active-run?runId=${run._id}`)
+									router.push(`/dashboard/route/runs/${run._id}`)
 								}
 								className="bg-card border-border active:opacity-80 rounded-xl border p-4"
 							>

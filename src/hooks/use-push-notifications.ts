@@ -55,7 +55,7 @@ export function usePushNotifications() {
 						(response) => {
 							const data = response.notification.request.content.data;
 							if (data?.type === "delay" && data?.routeRunId) {
-								router.push(`/dashboard/active-run?runId=${data.routeRunId}`);
+								router.push(`/dashboard/route/runs/${data.routeRunId}`);
 							}
 						},
 					);

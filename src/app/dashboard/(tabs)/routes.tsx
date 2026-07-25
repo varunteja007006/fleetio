@@ -145,7 +145,7 @@ const DriverRoutesView = () => {
 		setStartingRouteId(routeId);
 		try {
 			const runId = await startRouteRun({ routeId });
-			router.replace(`/dashboard/active-run?runId=${runId}`);
+			router.replace(`/dashboard/route/runs/${runId}`);
 		} catch (error) {
 			const message = error instanceof Error ? error.message : "";
 			if (message.includes("already have an active route run")) {
@@ -176,7 +176,7 @@ const DriverRoutesView = () => {
 	};
 
 	const handleContinueRoute = (runId: Id<"routeRuns">) => {
-		router.replace(`/dashboard/active-run?runId=${runId}`);
+		router.replace(`/dashboard/route/runs/${runId}`);
 	};
 
 	return (

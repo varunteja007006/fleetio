@@ -174,7 +174,7 @@ const Dashboard = () => {
 									onPress={() => {
 										if (activeRun) {
 											router.push(
-												`/dashboard/active-run?runId=${activeRun._id}`,
+												`/dashboard/route/runs/${activeRun._id}`,
 											);
 										} else {
 											router.push("/dashboard/(tabs)/routes");
@@ -227,7 +227,7 @@ const Dashboard = () => {
 						<View className="mx-6 mt-6">
 							<Pressable
 								onPress={() =>
-									router.push(`/dashboard/active-run?runId=${activeRun._id}`)
+									router.push(`/dashboard/route/runs/${activeRun._id}`)
 								}
 								className="flex-row items-center gap-4 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-4"
 							>
