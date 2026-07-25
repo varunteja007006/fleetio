@@ -7,7 +7,7 @@ export const startRouteRun = mutation({
 		routeId: v.id("routes"),
 	},
 	handler: async (ctx, args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
 		if (!user) {
 			throw new Error("Not authenticated");
 		}
@@ -75,7 +75,7 @@ export const completeRouteRun = mutation({
 		routeRunId: v.id("routeRuns"),
 	},
 	handler: async (ctx, args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
 		if (!user) {
 			throw new Error("Not authenticated");
 		}
@@ -116,7 +116,7 @@ export const cancelRouteRun = mutation({
 		routeRunId: v.id("routeRuns"),
 	},
 	handler: async (ctx, args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
 		if (!user) {
 			throw new Error("Not authenticated");
 		}
@@ -213,9 +213,9 @@ export const getRouteRunById = query({
 		routeRunId: v.id("routeRuns"),
 	},
 	handler: async (ctx, args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
 		if (!user) {
-			throw new Error("Not authenticated");
+			return null;
 		}
 
 		const profile = await ctx.db
@@ -224,21 +224,21 @@ export const getRouteRunById = query({
 			.first();
 
 		if (!profile) {
-			throw new Error("Profile not found");
+			return null;
 		}
 
 		const routeRun = await ctx.db.get(args.routeRunId);
 		if (!routeRun) {
-			throw new Error("Route run not found");
+			return null;
 		}
 
 		if (routeRun.driverId !== profile._id && profile.role !== "admin" && profile.role !== "manager") {
-			throw new Error("Unauthorized");
+			return null;
 		}
 
 		const route = await ctx.db.get(routeRun.routeId);
 		if (!route || route.isDeleted) {
-			throw new Error("Route not found");
+			return null;
 		}
 
 		const visits = await ctx.db
@@ -268,9 +268,9 @@ export const getRouteRunById = query({
 export const listMyRuns = query({
 	args: {},
 	handler: async (ctx, _args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
 		if (!user) {
-			throw new Error("Not authenticated");
+			return [];
 		}
 
 		const profile = await ctx.db
@@ -279,7 +279,7 @@ export const listMyRuns = query({
 			.first();
 
 		if (!profile) {
-			throw new Error("Profile not found");
+			return [];
 		}
 
 		const routeRuns = await ctx.db
@@ -304,7 +304,7 @@ export const markCheckpointReached = mutation({
 		visitId: v.id("checkpointVisits"),
 	},
 	handler: async (ctx, args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
 		if (!user) {
 			throw new Error("Not authenticated");
 		}
@@ -354,7 +354,7 @@ export const skipCheckpoint = mutation({
 		visitId: v.id("checkpointVisits"),
 	},
 	handler: async (ctx, args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
 		if (!user) {
 			throw new Error("Not authenticated");
 		}

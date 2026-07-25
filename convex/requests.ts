@@ -15,7 +15,10 @@ export const submitRequest = mutation({
 		imageStorageIds: v.array(v.string()),
 	},
 	handler: async (ctx, args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
+		if (!user) {
+			throw new Error("Not authenticated");
+		}
 
 		await ctx.db.insert("requests", {
 			authUserId: user._id,
@@ -38,7 +41,10 @@ export const getUploadUrl = mutation({
 export const listMyRequests = query({
 	args: { paginationOpts: paginationOptsValidator },
 	handler: async (ctx, args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
+		if (!user) {
+			return { page: [], continueCursor: "", isDone: true };
+		}
 
 		const result = await ctx.db
 			.query("requests")
@@ -67,7 +73,10 @@ export const softDeleteRequest = mutation({
 		requestId: v.id("requests"),
 	},
 	handler: async (ctx, args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
+		if (!user) {
+			throw new Error("Not authenticated");
+		}
 
 		const request = await ctx.db.get(args.requestId);
 		if (!request) throw new Error("Request not found");
@@ -89,7 +98,10 @@ export const listAllRequests = query({
 		),
 	},
 	handler: async (ctx, args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
+		if (!user) {
+			return { page: [], continueCursor: "", isDone: true };
+		}
 
 		const callerProfile = await ctx.db
 			.query("profiles")
@@ -97,7 +109,7 @@ export const listAllRequests = query({
 			.first();
 
 		if (!callerProfile || callerProfile.role !== "admin") {
-			throw new Error("Unauthorized");
+			return { page: [], continueCursor: "", isDone: true };
 		}
 
 		const typeFilter = args.typeFilter;
@@ -150,7 +162,10 @@ export const adminDeleteImageFromRequest = mutation({
 		storageId: v.string(),
 	},
 	handler: async (ctx, args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
+		if (!user) {
+			throw new Error("Not authenticated");
+		}
 
 		const callerProfile = await ctx.db
 			.query("profiles")
@@ -179,7 +194,10 @@ export const adminHardDeleteRequest = mutation({
 		requestId: v.id("requests"),
 	},
 	handler: async (ctx, args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
+		if (!user) {
+			throw new Error("Not authenticated");
+		}
 
 		const callerProfile = await ctx.db
 			.query("profiles")
@@ -204,7 +222,10 @@ export const adminHardDeleteRequest = mutation({
 export const getRequestsReport = query({
 	args: {},
 	handler: async (ctx) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
+		if (!user) {
+			return { total: 0, feedback: 0, featureRequest: 0, bug: 0 };
+		}
 
 		const callerProfile = await ctx.db
 			.query("profiles")
@@ -212,7 +233,7 @@ export const getRequestsReport = query({
 			.first();
 
 		if (!callerProfile || callerProfile.role !== "admin") {
-			throw new Error("Unauthorized");
+			return { total: 0, feedback: 0, featureRequest: 0, bug: 0 };
 		}
 
 		const all = await ctx.db.query("requests").order("desc").take(5000);

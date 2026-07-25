@@ -1,5 +1,4 @@
 import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
 import { useQuery } from "convex/react";
 import { Stack, useRouter } from "expo-router";
 import {
@@ -60,12 +59,14 @@ export default function RouteHistoryScreen() {
 
 	return (
 		<SafeAreaView className="flex-1">
-			<Stack.Screen options={{ title: "Route History" }} />
+			<Stack.Screen options={{ title: "Route History", headerShown: false }} />
 			<ScrollView
 				className="px-6 py-6"
 				contentContainerStyle={{ paddingBottom: 40 }}
 			>
-				<Text className="text-foreground text-2xl font-bold">Route History</Text>
+				<Text className="text-foreground text-2xl font-bold">
+					Route History
+				</Text>
 				<Text className="text-muted-foreground mt-1 text-sm">
 					Your past and current route runs.
 				</Text>
@@ -94,9 +95,7 @@ export default function RouteHistoryScreen() {
 						myRuns.map((run) => (
 							<Pressable
 								key={run._id}
-								onPress={() =>
-									router.push(`/dashboard/route/runs/${run._id}`)
-								}
+								onPress={() => router.push(`/dashboard/route/runs/${run._id}`)}
 								className="bg-card border-border active:opacity-80 rounded-xl border p-4"
 							>
 								<View className="flex-row items-start justify-between">
@@ -105,8 +104,7 @@ export default function RouteHistoryScreen() {
 											{run.route?.name ?? "Unknown route"}
 										</Text>
 										<Text className="text-muted-foreground mt-1 text-xs">
-											{formatDate(run.startedAt)} at{" "}
-											{formatTime(run.startedAt)}
+											{formatDate(run.startedAt)} at {formatTime(run.startedAt)}
 										</Text>
 									</View>
 									<View

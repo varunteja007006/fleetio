@@ -8,7 +8,10 @@ export const submitContactMessage = mutation({
 		message: v.string(),
 	},
 	handler: async (ctx, args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
+		if (!user) {
+			throw new Error("Not authenticated");
+		}
 
 		await ctx.db.insert("supportMessages", {
 			authUserId: user._id,

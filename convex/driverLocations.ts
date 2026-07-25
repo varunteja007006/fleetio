@@ -68,7 +68,7 @@ export const recordLocation = mutation({
 		heading: v.optional(v.number()),
 	},
 	handler: async (ctx, args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
 		if (!user) {
 			throw new Error("Not authenticated");
 		}
@@ -121,7 +121,7 @@ export const recordLocationBatch = mutation({
 		),
 	},
 	handler: async (ctx, args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
 		if (!user) {
 			throw new Error("Not authenticated");
 		}
@@ -167,7 +167,7 @@ export const getLocationsForRun = query({
 	handler: async (ctx, args) => {
 		const user = await authComponent.safeGetAuthUser(ctx);
 		if (!user) {
-			throw new Error("Not authenticated");
+			return [];
 		}
 
 		const profile = await ctx.db
@@ -176,12 +176,12 @@ export const getLocationsForRun = query({
 			.first();
 
 		if (!profile) {
-			throw new Error("Profile not found");
+			return [];
 		}
 
 		const routeRun = await ctx.db.get(args.routeRunId);
 		if (!routeRun) {
-			throw new Error("Route run not found");
+			return [];
 		}
 
 		if (
@@ -189,7 +189,7 @@ export const getLocationsForRun = query({
 			profile.role !== "admin" &&
 			profile.role !== "manager"
 		) {
-			throw new Error("Unauthorized");
+			return [];
 		}
 
 		const locations = await ctx.db

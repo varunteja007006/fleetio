@@ -133,7 +133,10 @@ export const updateProfile = mutation({
 		notificationsEnabled: v.optional(v.boolean()),
 	},
 	handler: async (ctx, args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
+		if (!user) {
+			throw new Error("Not authenticated");
+		}
 
 		const profile = await ctx.db
 			.query("profiles")
@@ -168,7 +171,10 @@ export const updateUserStatus = mutation({
 		status: v.union(v.literal("approved"), v.literal("rejected")),
 	},
 	handler: async (ctx, args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
+		if (!user) {
+			throw new Error("Not authenticated");
+		}
 
 		const callerProfile = await ctx.db
 			.query("profiles")
@@ -202,7 +208,10 @@ export const updateUserRole = mutation({
 		),
 	},
 	handler: async (ctx, args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
+		if (!user) {
+			throw new Error("Not authenticated");
+		}
 
 		const callerProfile = await ctx.db
 			.query("profiles")
@@ -228,7 +237,10 @@ export const updateUserRole = mutation({
 export const getPendingProfiles = query({
 	args: {},
 	handler: async (ctx, _args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
+		if (!user) {
+			return [];
+		}
 
 		const callerProfile = await ctx.db
 			.query("profiles")
@@ -236,7 +248,7 @@ export const getPendingProfiles = query({
 			.first();
 
 		if (!callerProfile || callerProfile.role !== "admin") {
-			throw new Error("Unauthorized");
+			return [];
 		}
 
 		const pendingProfiles = await ctx.db
@@ -251,7 +263,10 @@ export const getPendingProfiles = query({
 export const getDrivers = query({
 	args: {},
 	handler: async (ctx, _args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
+		if (!user) {
+			return [];
+		}
 
 		const callerProfile = await ctx.db
 			.query("profiles")
@@ -259,7 +274,7 @@ export const getDrivers = query({
 			.first();
 
 		if (!callerProfile || callerProfile.role !== "admin") {
-			throw new Error("Unauthorized");
+			return [];
 		}
 
 		const profiles = await ctx.db
@@ -285,7 +300,10 @@ export const updateProfilePicture = mutation({
 		storageId: v.string(),
 	},
 	handler: async (ctx, args) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
+		if (!user) {
+			throw new Error("Not authenticated");
+		}
 
 		const profile = await ctx.db
 			.query("profiles")
@@ -304,7 +322,10 @@ export const updateProfilePicture = mutation({
 export const removeProfilePicture = mutation({
 	args: {},
 	handler: async (ctx) => {
-		const user = await authComponent.getAuthUser(ctx);
+		const user = await authComponent.safeGetAuthUser(ctx);
+		if (!user) {
+			throw new Error("Not authenticated");
+		}
 
 		const profile = await ctx.db
 			.query("profiles")
