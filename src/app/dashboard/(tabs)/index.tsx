@@ -1,7 +1,7 @@
 import { api } from "@/convex/_generated/api";
 import { Lucide } from "@react-native-vector-icons/lucide";
 import { useQuery } from "convex/react";
-import { Link, Stack, useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -27,12 +27,19 @@ function UserCardSkeleton() {
 	);
 }
 
-function UserCard({ profile }: { profile: { firstName?: string | null; lastName?: string | null; role?: string | null; avatarStorageId?: string | null } | null }) {
+function UserCard({
+	profile,
+}: {
+	profile: {
+		firstName?: string | null;
+		lastName?: string | null;
+		role?: string | null;
+		avatarStorageId?: string | null;
+	} | null;
+}) {
 	const avatarUrl = useQuery(
 		api.profile.getStorageUrl,
-		profile?.avatarStorageId
-			? { storageId: profile.avatarStorageId }
-			: "skip",
+		profile?.avatarStorageId ? { storageId: profile.avatarStorageId } : "skip",
 	);
 	const firstName = profile?.firstName ?? "";
 	const lastName = profile?.lastName ?? "";
@@ -93,7 +100,7 @@ const Dashboard = () => {
 	const totalRoutes = isAdminOrManager
 		? (routeStats?.totalRoutes ?? 0)
 		: (assignments?.length ?? 0);
-	const rawRoutes = isAdminOrManager ? allRoutes : assignments;
+
 	const routeCount = isAdminOrManager
 		? (allRoutes?.length ?? 0)
 		: (assignments?.filter((a) => a.active)?.length ?? 0);
@@ -163,17 +170,29 @@ const Dashboard = () => {
 								</Text>
 							</Pressable>
 							{!isAdminOrManager ? (
-							<Pressable
-								onPress={() => router.push("/dashboard/(tabs)/routes")}
-								className="flex-1 items-center rounded-2xl border border-border bg-card px-4 py-5 shadow-sm active:opacity-70"
-							>
-								<View className="mb-2 h-10 w-10 items-center justify-center rounded-xl bg-chart-3/15">
-									<Lucide name="flag" size={20} color="#c2410c" />
-								</View>
-								<Text className="text-foreground text-sm font-medium">
-									Start
-								</Text>
-							</Pressable>
+								<Pressable
+									onPress={() => {
+										if (activeRun) {
+											router.push(
+												`/dashboard/active-run?runId=${activeRun._id}`,
+											);
+										} else {
+											router.push("/dashboard/(tabs)/routes");
+										}
+									}}
+									className="flex-1 items-center rounded-2xl border border-border bg-card px-4 py-5 shadow-sm active:opacity-70"
+								>
+									<View className="mb-2 h-10 w-10 items-center justify-center rounded-xl bg-chart-3/15">
+										<Lucide
+											name={activeRun ? "play" : "flag"}
+											size={20}
+											color="#c2410c"
+										/>
+									</View>
+									<Text className="text-foreground text-sm font-medium">
+										{activeRun ? "Continue" : "Start"}
+									</Text>
+								</Pressable>
 							) : null}
 							{!isAdminOrManager ? (
 								<Pressable
@@ -219,76 +238,12 @@ const Dashboard = () => {
 									<Text className="text-blue-700 text-sm font-semibold">
 										Active Route: {activeRun.route.name}
 									</Text>
-									<Text className="text-blue-500 text-xs">
-										Tap to continue
-									</Text>
+									<Text className="text-blue-500 text-xs">Tap to continue</Text>
 								</View>
 								<Lucide name="arrow-right" size={20} color="#60a5fa" />
 							</Pressable>
 						</View>
 					) : null}
-
-					{rawRoutes && rawRoutes.length > 0 && (
-						<View className="mt-8 px-6">
-							<View className="mb-4 flex-row items-center justify-between">
-								<Text className="text-foreground text-lg font-semibold">
-									Routes
-								</Text>
-								<Link
-									href="/dashboard/(tabs)/routes"
-									className="text-primary text-sm font-medium"
-								>
-									See all
-								</Link>
-							</View>
-							{rawRoutes.slice(0, 5).map((item) => {
-								const route = isAdminOrManager
-									? item
-									: (item as any).route;
-								return (
-									<Pressable
-										key={item._id}
-										onPress={() => router.push("/dashboard/(tabs)/routes")}
-										className="mb-2 flex-row items-center rounded-2xl border border-border bg-card px-4 py-4 shadow-sm active:opacity-70"
-									>
-										<View className="mr-4 h-10 w-10 items-center justify-center rounded-xl bg-primary/15">
-											<Lucide name="map-pin" size={18} color="#f59e0b" />
-										</View>
-										<View className="flex-1 gap-0.5">
-											<Text className="text-foreground text-base font-medium">
-												{route?.name ?? "Unknown route"}
-											</Text>
-											{route?.description && (
-												<Text
-													className="text-muted-foreground text-sm"
-													numberOfLines={1}
-												>
-													{route.description}
-												</Text>
-											)}
-										</View>
-										<Lucide name="chevron-right" size={18} color="#9ca3af" />
-									</Pressable>
-								);
-							})}
-						</View>
-					)}
-
-					{rawRoutes && rawRoutes.length === 0 && (
-						<View className="mx-6 mt-8 items-center rounded-2xl border border-dashed border-border bg-card px-6 py-12">
-							<View className="mb-4 h-14 w-14 items-center justify-center rounded-2xl bg-muted">
-								<Lucide name="route" size={28} color="#9ca3af" />
-							</View>
-							<Text className="text-foreground mb-1 text-base font-semibold">
-								No routes yet
-							</Text>
-							<Text className="text-muted-foreground text-center text-sm">
-								{isAdminOrManager
-									? "Routes will appear here once they are created"
-									: "You haven't been assigned any routes yet"}
-							</Text>
-						</View>
-					)}
 
 					{userProfile !== undefined && !userProfile?.firstName && (
 						<Pressable

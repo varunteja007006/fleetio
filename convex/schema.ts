@@ -190,7 +190,9 @@ export default defineSchema({
 		isDeleted: v.boolean(),
 		createdAt: v.number(),
 	}).index("by_auth_user", ["authUserId"])
-		.index("by_auth_user_and_isDeleted", ["authUserId", "isDeleted"]),
+		.index("by_auth_user_and_isDeleted", ["authUserId", "isDeleted"])
+		.index("by_type", ["type"])
+		.index("by_isDeleted", ["isDeleted"]),
 
 	supportMessages: defineTable({
 		authUserId: v.string(),

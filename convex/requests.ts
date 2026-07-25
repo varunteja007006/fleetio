@@ -2,6 +2,7 @@ import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { authComponent } from "./auth";
+import type { Id } from "./_generated/dataModel";
 
 export const submitRequest = mutation({
 	args: {
@@ -77,7 +78,16 @@ export const softDeleteRequest = mutation({
 });
 
 export const listAllRequests = query({
-	args: { paginationOpts: paginationOptsValidator },
+	args: {
+		paginationOpts: paginationOptsValidator,
+		typeFilter: v.optional(
+			v.union(
+				v.literal("feedback"),
+				v.literal("feature_request"),
+				v.literal("bug"),
+			),
+		),
+	},
 	handler: async (ctx, args) => {
 		const user = await authComponent.getAuthUser(ctx);
 
@@ -90,10 +100,18 @@ export const listAllRequests = query({
 			throw new Error("Unauthorized");
 		}
 
-		const result = await ctx.db
-			.query("requests")
-			.order("desc")
-			.paginate(args.paginationOpts);
+		const typeFilter = args.typeFilter;
+
+		const result = typeFilter
+			? await ctx.db
+					.query("requests")
+					.withIndex("by_type", (q) => q.eq("type", typeFilter))
+					.order("desc")
+					.paginate(args.paginationOpts)
+			: await ctx.db
+					.query("requests")
+					.order("desc")
+					.paginate(args.paginationOpts);
 
 		return {
 			...result,
@@ -122,6 +140,98 @@ export const listAllRequests = query({
 					};
 				}),
 			),
+		};
+	},
+});
+
+export const adminDeleteImageFromRequest = mutation({
+	args: {
+		requestId: v.id("requests"),
+		storageId: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const user = await authComponent.getAuthUser(ctx);
+
+		const callerProfile = await ctx.db
+			.query("profiles")
+			.withIndex("by_auth_user", (q) => q.eq("authUserId", user._id))
+			.first();
+
+		if (!callerProfile || callerProfile.role !== "admin") {
+			throw new Error("Unauthorized");
+		}
+
+		const request = await ctx.db.get(args.requestId);
+		if (!request) throw new Error("Request not found");
+
+		await ctx.storage.delete(args.storageId as Id<"_storage">);
+
+		const updatedIds = request.imageStorageIds.filter(
+			(id) => id !== args.storageId,
+		);
+
+		await ctx.db.patch(args.requestId, { imageStorageIds: updatedIds });
+	},
+});
+
+export const adminHardDeleteRequest = mutation({
+	args: {
+		requestId: v.id("requests"),
+	},
+	handler: async (ctx, args) => {
+		const user = await authComponent.getAuthUser(ctx);
+
+		const callerProfile = await ctx.db
+			.query("profiles")
+			.withIndex("by_auth_user", (q) => q.eq("authUserId", user._id))
+			.first();
+
+		if (!callerProfile || callerProfile.role !== "admin") {
+			throw new Error("Unauthorized");
+		}
+
+		const request = await ctx.db.get(args.requestId);
+		if (!request) throw new Error("Request not found");
+
+		for (const storageId of request.imageStorageIds) {
+			await ctx.storage.delete(storageId as Id<"_storage">);
+		}
+
+		await ctx.db.delete(args.requestId);
+	},
+});
+
+export const getRequestsReport = query({
+	args: {},
+	handler: async (ctx) => {
+		const user = await authComponent.getAuthUser(ctx);
+
+		const callerProfile = await ctx.db
+			.query("profiles")
+			.withIndex("by_auth_user", (q) => q.eq("authUserId", user._id))
+			.first();
+
+		if (!callerProfile || callerProfile.role !== "admin") {
+			throw new Error("Unauthorized");
+		}
+
+		const all = await ctx.db.query("requests").order("desc").take(5000);
+
+		let feedbackCount = 0;
+		let featureRequestCount = 0;
+		let bugCount = 0;
+
+		for (const r of all) {
+			if (r.type === "feedback") feedbackCount++;
+			else if (r.type === "feature_request") featureRequestCount++;
+			else if (r.type === "bug") bugCount++;
+		}
+
+		return {
+			total: all.length,
+			feedback: feedbackCount,
+			featureRequest: featureRequestCount,
+			bug: bugCount,
 		};
 	},
 });

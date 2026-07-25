@@ -134,24 +134,49 @@ const AdminRoutesView = () => {
 const DriverRoutesView = () => {
 	const router = useRouter();
 	const myAssignments = useQuery(api.routeAssignments.listByDriver);
+	const activeRun = useQuery(api.routeRuns.getActiveRun);
 	const startRouteRun = useMutation(api.routeRuns.startRouteRun);
 	const [startingRouteId, setStartingRouteId] = useState<string | null>(null);
 
 	const assignedRoutes = myAssignments ?? [];
+	const hasActiveRun = activeRun !== null && activeRun !== undefined;
 
-	const handleStartRoute = async (routeId: string) => {
+	const handleStartRoute = async (routeId: Id<"routes">) => {
 		setStartingRouteId(routeId);
 		try {
 			const runId = await startRouteRun({ routeId });
 			router.replace(`/dashboard/active-run?runId=${runId}`);
 		} catch (error) {
-			Alert.alert(
-				"Failed to start route",
-				error instanceof Error ? error.message : "Please try again.",
-			);
+			const message = error instanceof Error ? error.message : "";
+			if (message.includes("already have an active route run")) {
+				Alert.alert(
+					"Route already in progress",
+					"You already have a route in progress. Please complete or cancel it before starting a new one.",
+				);
+			} else if (message.includes("Only drivers")) {
+				Alert.alert(
+					"Action not available",
+					"Only drivers can start routes. Contact your admin if you believe this is a mistake.",
+				);
+			} else if (message.includes("not found") || message.includes("deleted")) {
+				Alert.alert(
+					"Route unavailable",
+					"This route is no longer available. It may have been deleted or deactivated.",
+				);
+			} else {
+				Alert.alert(
+					"Failed to start route",
+					message ||
+						"Please try again. If the issue persists, contact support.",
+				);
+			}
 		} finally {
 			setStartingRouteId(null);
 		}
+	};
+
+	const handleContinueRoute = (runId: Id<"routeRuns">) => {
+		router.replace(`/dashboard/active-run?runId=${runId}`);
 	};
 
 	return (
@@ -167,7 +192,7 @@ const DriverRoutesView = () => {
 				</Text>
 
 				<View className="mt-6 gap-3">
-					{myAssignments === undefined ? (
+					{myAssignments === undefined || activeRun === undefined ? (
 						<ActivityIndicator />
 					) : assignedRoutes.length === 0 ? (
 						<View className="items-center rounded-2xl border border-dashed border-border bg-card px-6 py-12">
@@ -180,7 +205,7 @@ const DriverRoutesView = () => {
 						</View>
 					) : (
 						assignedRoutes.map((a) => {
-							const isLoading = startingRouteId === a._id;
+							const isLoading = startingRouteId === a.routeId;
 
 							return (
 								<View
@@ -204,19 +229,30 @@ const DriverRoutesView = () => {
 												</Text>
 											) : null}
 										</View>
-										<Pressable
-											onPress={() => handleStartRoute(a._id)}
-											disabled={isLoading}
-											className="shrink-0 bg-primary rounded-lg px-4 py-2"
-										>
-											{isLoading ? (
-												<ActivityIndicator color="#ffffff" size="small" />
-											) : (
-												<Text className="text-primary-foreground font-semibold text-sm">
-													Start
+										{hasActiveRun ? (
+											<Pressable
+												onPress={() => handleContinueRoute(activeRun._id)}
+												className="shrink-0 bg-blue-500 rounded-lg px-4 py-2"
+											>
+												<Text className="text-white font-semibold text-sm">
+													In Progress
 												</Text>
-											)}
-										</Pressable>
+											</Pressable>
+										) : (
+											<Pressable
+												onPress={() => handleStartRoute(a.routeId)}
+												disabled={isLoading}
+												className="shrink-0 bg-primary rounded-lg px-4 py-2"
+											>
+												{isLoading ? (
+													<ActivityIndicator color="#ffffff" size="small" />
+												) : (
+													<Text className="text-primary-foreground font-semibold text-sm">
+														Start
+													</Text>
+												)}
+											</Pressable>
+										)}
 									</View>
 									<View className="mt-3 flex-row flex-wrap items-center gap-2">
 										<View

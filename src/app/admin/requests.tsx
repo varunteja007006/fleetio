@@ -1,10 +1,12 @@
 import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import Luicide from "@react-native-vector-icons/lucide";
-import { usePaginatedQuery } from "convex/react";
+import { useMutation, usePaginatedQuery, useQuery } from "convex/react";
 import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
 import {
 	ActivityIndicator,
+	Alert,
 	Dimensions,
 	Image,
 	Modal,
@@ -35,18 +37,84 @@ const REQUEST_TYPE_COLORS: Record<string, string> = {
 	bug: "#ef4444",
 };
 
+type TypeFilter = "all" | "feedback" | "feature_request" | "bug";
+
+const FILTER_TABS: { value: TypeFilter; label: string }[] = [
+	{ value: "all", label: "All" },
+	{ value: "feedback", label: "Feedback" },
+	{ value: "feature_request", label: "Feature" },
+	{ value: "bug", label: "Bugs" },
+];
+
 export default function AdminRequestsScreen() {
 	const router = useRouter();
+	const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
+	const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
+
+	const report = useQuery(api.requests.getRequestsReport);
+
+	const convexFilter = typeFilter === "all" ? undefined : typeFilter;
+
 	const {
 		results: allRequests,
 		status: paginatedStatus,
 		loadMore,
 	} = usePaginatedQuery(
 		api.requests.listAllRequests,
-		{},
+		{ typeFilter: convexFilter },
 		{ initialNumItems: 5 },
 	);
-	const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
+
+	const deleteImage = useMutation(api.requests.adminDeleteImageFromRequest);
+	const hardDeleteRequest = useMutation(api.requests.adminHardDeleteRequest);
+
+	const handleDeleteImage = (requestId: Id<"requests">, storageId: string) => {
+		Alert.alert(
+			"Delete Image",
+			"Are you sure you want to permanently delete this image? This cannot be undone.",
+			[
+				{ text: "Cancel", style: "cancel" },
+				{
+					text: "Delete",
+					style: "destructive",
+					onPress: async () => {
+						try {
+							await deleteImage({ requestId, storageId });
+						} catch (error) {
+							Alert.alert(
+								"Failed to delete image",
+								error instanceof Error ? error.message : "Please try again.",
+							);
+						}
+					},
+				},
+			],
+		);
+	};
+
+	const handleHardDeleteRequest = (requestId: Id<"requests">) => {
+		Alert.alert(
+			"Hard Delete Request",
+			"Are you sure you want to permanently delete this request and all its images? This cannot be undone.",
+			[
+				{ text: "Cancel", style: "cancel" },
+				{
+					text: "Delete",
+					style: "destructive",
+					onPress: async () => {
+						try {
+							await hardDeleteRequest({ requestId });
+						} catch (error) {
+							Alert.alert(
+								"Failed to delete request",
+								error instanceof Error ? error.message : "Please try again.",
+							);
+						}
+					},
+				},
+			],
+		);
+	};
 
 	return (
 		<SafeAreaView className="flex-1">
@@ -57,117 +125,232 @@ export default function AdminRequestsScreen() {
 					<Luicide name="arrow-left" size={24} color="#9ca3af" />
 				</Pressable>
 				<Text className="text-foreground text-xl font-bold">
-					All Requests
+					Requests & Feedback
 				</Text>
 			</View>
 
-			{paginatedStatus === "LoadingFirstPage" ? (
-				<ActivityIndicator className="mt-8" />
-			) : allRequests.length === 0 ? (
-				<View className="flex-1 items-center justify-center px-6">
-					<Luicide name="inbox" size={48} color="#9ca3af" />
-					<Text className="text-muted-foreground mt-4 text-base">
-						No requests yet.
-					</Text>
-				</View>
-			) : (
-				<ScrollView className="px-6 pb-8">
-					<Text className="text-muted-foreground mb-4 text-sm">
-						{allRequests.length} request{allRequests.length !== 1 ? "s" : ""}
-					</Text>
-					{allRequests.map((req) => (
+			<ScrollView className="flex-1 px-6 pb-8">
+				{report && (
+					<View className="mb-4 flex-row gap-3">
+						<View className="border-border bg-card flex-1 rounded-xl border p-3">
+							<Text className="text-muted-foreground text-xs">Total</Text>
+							<Text className="text-foreground mt-1 text-xl font-bold">
+								{report.total}
+							</Text>
+						</View>
 						<View
-							key={req._id}
-							className={`border-border bg-card mb-3 rounded-xl border p-4 ${
-								req.isDeleted ? "opacity-60" : ""
-							}`}
+							className="flex-1 rounded-xl border p-3"
+							style={{
+								borderColor: "#3b82f6",
+								backgroundColor: "#3b82f615",
+							}}
 						>
-							<View className="mb-2 flex-row items-center gap-2">
-								<Luicide
-									name={
-										REQUEST_TYPE_ICONS[req.type] as
-											| "message-circle"
-											| "sparkles"
-											| "bug"
-									}
-									size={16}
-									color={REQUEST_TYPE_COLORS[req.type]}
-								/>
-								<View
-									className="rounded-full px-2.5 py-0.5"
-									style={{
-										backgroundColor:
-											REQUEST_TYPE_COLORS[req.type] + "20",
-									}}
+							<Text className="text-xs" style={{ color: "#3b82f6" }}>
+								Feedback
+							</Text>
+							<Text
+								className="mt-1 text-xl font-bold"
+								style={{ color: "#3b82f6" }}
+							>
+								{report.feedback}
+							</Text>
+						</View>
+						<View
+							className="flex-1 rounded-xl border p-3"
+							style={{
+								borderColor: "#8b5cf6",
+								backgroundColor: "#8b5cf615",
+							}}
+						>
+							<Text className="text-xs" style={{ color: "#8b5cf6" }}>
+								Features
+							</Text>
+							<Text
+								className="mt-1 text-xl font-bold"
+								style={{ color: "#8b5cf6" }}
+							>
+								{report.featureRequest}
+							</Text>
+						</View>
+						<View
+							className="flex-1 rounded-xl border p-3"
+							style={{
+								borderColor: "#ef4444",
+								backgroundColor: "#ef444415",
+							}}
+						>
+							<Text className="text-xs" style={{ color: "#ef4444" }}>
+								Bugs
+							</Text>
+							<Text
+								className="mt-1 text-xl font-bold"
+								style={{ color: "#ef4444" }}
+							>
+								{report.bug}
+							</Text>
+						</View>
+					</View>
+				)}
+
+				<View className="mb-4 flex-row gap-2">
+					{FILTER_TABS.map((tab) => {
+						const isActive = typeFilter === tab.value;
+						return (
+							<Pressable
+								key={tab.value}
+								onPress={() => setTypeFilter(tab.value)}
+								className={`rounded-full px-3.5 py-1.5 ${
+									isActive ? "bg-primary" : "bg-gray-500/20"
+								}`}
+							>
+								<Text
+									className={`text-xs font-medium ${
+										isActive ? "text-white" : "text-muted-foreground"
+									}`}
 								>
-									<Text
-										className="text-xs font-medium"
-										style={{ color: REQUEST_TYPE_COLORS[req.type] }}
+									{tab.label}
+								</Text>
+							</Pressable>
+						);
+					})}
+				</View>
+
+				{paginatedStatus === "LoadingFirstPage" ? (
+					<ActivityIndicator className="mt-8" />
+				) : allRequests.length === 0 ? (
+					<View className="flex-1 items-center justify-center px-6">
+						<Luicide name="inbox" size={48} color="#9ca3af" />
+						<Text className="text-muted-foreground mt-4 text-base">
+							No requests yet.
+						</Text>
+					</View>
+				) : (
+					<>
+						<Text className="text-muted-foreground mb-4 text-sm">
+							{allRequests.length} request{allRequests.length !== 1 ? "s" : ""}
+						</Text>
+						{allRequests.map((req) => (
+							<View
+								key={req._id}
+								className={`border-border bg-card mb-3 rounded-xl border p-4 ${
+									req.isDeleted ? "opacity-60" : ""
+								}`}
+							>
+								<View className="mb-2 flex-row items-center gap-2">
+									<Luicide
+										name={
+											REQUEST_TYPE_ICONS[req.type] as
+												| "message-circle"
+												| "sparkles"
+												| "bug"
+										}
+										size={16}
+										color={REQUEST_TYPE_COLORS[req.type]}
+									/>
+									<View
+										className="rounded-full px-2.5 py-0.5"
+										style={{
+											backgroundColor:
+												REQUEST_TYPE_COLORS[req.type] + "20",
+										}}
 									>
-										{REQUEST_TYPE_LABELS[req.type]}
-									</Text>
-								</View>
-								{req.isDeleted && (
-									<View className="rounded-full bg-red-500/20 px-2.5 py-0.5">
-										<Text className="text-xs font-medium text-red-500">
-											Deleted
+										<Text
+											className="text-xs font-medium"
+											style={{ color: REQUEST_TYPE_COLORS[req.type] }}
+										>
+											{REQUEST_TYPE_LABELS[req.type]}
 										</Text>
 									</View>
-								)}
-								<Text className="text-muted-foreground ml-auto text-xs">
-									{new Date(req.createdAt).toLocaleDateString(undefined, {
-										month: "short",
-										day: "numeric",
-										year: "numeric",
-									})}
-								</Text>
-							</View>
-							<Text className="text-foreground text-sm leading-5">
-								{req.description}
-							</Text>
-							<View className="text-muted-foreground mt-1.5 flex-row items-center gap-1.5">
-								<Luicide name="user" size={12} color="#9ca3af" />
-								<Text className="text-muted-foreground text-xs">
-									{req.user
-										? [req.user.firstName, req.user.lastName]
-												.filter(Boolean)
-												.join(" ") || req.user.phoneNumber || req.user.email || "Unknown"
-										: "Unknown User"}
-								</Text>
-							</View>
-							{req.imageUrls && req.imageUrls.length > 0 && (
-								<View className="mt-3 flex-row flex-wrap gap-2">
-									{req.imageUrls.filter(Boolean).map((url, i) => (
-										<Pressable
-											key={i}
-											onPress={() => setSelectedImageUrl(url!)}
-										>
-											<Image
-												source={{ uri: url! }}
-												className="rounded-xl border border-white/10"
-												style={{ width: 64, height: 64 }}
-											/>
-										</Pressable>
-									))}
+									{req.isDeleted && (
+										<View className="rounded-full bg-red-500/20 px-2.5 py-0.5">
+											<Text className="text-xs font-medium text-red-500">
+												Deleted
+											</Text>
+										</View>
+									)}
+									<Text className="text-muted-foreground ml-auto text-xs">
+										{new Date(req.createdAt).toLocaleDateString(undefined, {
+											month: "short",
+											day: "numeric",
+											year: "numeric",
+										})}
+									</Text>
 								</View>
-							)}
-						</View>
-					))}
-					{paginatedStatus === "CanLoadMore" && (
-						<Pressable
-							onPress={() => loadMore(5)}
-							className="border-border bg-card mb-4 items-center rounded-xl border border-dashed px-4 py-3 active:opacity-70"
-						>
-							<Text className="text-muted-foreground text-sm font-medium">
-								Load More
-							</Text>
-						</Pressable>
-					)}
-					{paginatedStatus === "LoadingMore" && (
-						<ActivityIndicator className="mb-4" />
-					)}
-				</ScrollView>
-			)}
+								<Text className="text-foreground text-sm leading-5">
+									{req.description}
+								</Text>
+								<View className="text-muted-foreground mt-1.5 flex-row items-center gap-1.5">
+									<Luicide name="user" size={12} color="#9ca3af" />
+									<Text className="text-muted-foreground text-xs">
+										{req.user
+											? [req.user.firstName, req.user.lastName]
+													.filter(Boolean)
+													.join(" ") || req.user.phoneNumber || req.user.email || "Unknown"
+											: "Unknown User"}
+									</Text>
+								</View>
+								{req.imageUrls && req.imageUrls.length > 0 && (
+									<View className="mt-3 flex-row flex-wrap gap-2">
+										{req.imageUrls
+											.map((url, i) => ({ url, storageId: req.imageStorageIds[i] }))
+											.filter(({ url }) => Boolean(url))
+											.map(({ url, storageId }, i) => (
+												<View key={i} className="relative">
+													<Pressable
+														onPress={() => setSelectedImageUrl(url!)}
+													>
+														<Image
+															source={{ uri: url! }}
+															className="rounded-xl border border-white/10"
+															style={{ width: 64, height: 64 }}
+														/>
+													</Pressable>
+													<Pressable
+														onPress={() =>
+															handleDeleteImage(
+																req._id as Id<"requests">,
+																storageId,
+															)
+														}
+														className="absolute -right-2 -top-2 h-5 w-5 items-center justify-center rounded-full bg-red-500/80"
+													>
+														<Luicide name="x" size={11} color="#ffffff" />
+													</Pressable>
+												</View>
+											))}
+									</View>
+								)}
+								<View className="mt-3 flex-row items-center justify-end gap-2">
+									<Pressable
+										onPress={() =>
+											handleHardDeleteRequest(req._id as Id<"requests">)
+										}
+										className="flex-row items-center gap-1.5 rounded-lg bg-red-500/15 px-3 py-1.5 active:opacity-70"
+									>
+										<Luicide name="trash-2" size={14} color="#ef4444" />
+										<Text className="text-xs font-medium text-red-500">
+											Hard Delete
+										</Text>
+									</Pressable>
+								</View>
+							</View>
+						))}
+						{paginatedStatus === "CanLoadMore" && (
+							<Pressable
+								onPress={() => loadMore(5)}
+								className="border-border bg-card mb-4 items-center rounded-xl border border-dashed px-4 py-3 active:opacity-70"
+							>
+								<Text className="text-muted-foreground text-sm font-medium">
+									Load More
+								</Text>
+							</Pressable>
+						)}
+						{paginatedStatus === "LoadingMore" && (
+							<ActivityIndicator className="mb-4" />
+						)}
+					</>
+				)}
+			</ScrollView>
 
 			<Modal
 				visible={selectedImageUrl !== null}

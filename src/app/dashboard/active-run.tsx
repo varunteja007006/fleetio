@@ -54,12 +54,15 @@ export default function ActiveRunScreen() {
 
 	const completeRouteRun = useMutation(api.routeRuns.completeRouteRun);
 	const cancelRouteRun = useMutation(api.routeRuns.cancelRouteRun);
-	const markCheckpointReached = useMutation(api.routeRuns.markCheckpointReached);
+	const markCheckpointReached = useMutation(
+		api.routeRuns.markCheckpointReached,
+	);
 	const skipCheckpoint = useMutation(api.routeRuns.skipCheckpoint);
 
-	const runIdForTracking = runId && activeRun?.status === "running"
-		? (runId as Id<"routeRuns">)
-		: null;
+	const runIdForTracking =
+		runId && activeRun?.status === "running"
+			? (runId as Id<"routeRuns">)
+			: null;
 	const { status: trackingStatus, lastLocation } =
 		useLocationTracking(runIdForTracking);
 
@@ -145,29 +148,35 @@ export default function ActiveRunScreen() {
 	};
 
 	const handleComplete = () => {
-		Alert.alert("Complete Route", "Are you sure you want to complete this route?", [
-			{ text: "Cancel", style: "cancel" },
-			{
-				text: "Complete",
-				style: "default",
-				onPress: async () => {
-					setActionLoading("complete");
-					try {
-						await completeRouteRun({
-							routeRunId: runId as Id<"routeRuns">,
-						});
-						router.replace("/dashboard/route-history");
-					} catch (error) {
-						Alert.alert(
-							"Error",
-							error instanceof Error ? error.message : "Failed to complete route",
-						);
-					} finally {
-						setActionLoading(null);
-					}
+		Alert.alert(
+			"Complete Route",
+			"Are you sure you want to complete this route?",
+			[
+				{ text: "Cancel", style: "cancel" },
+				{
+					text: "Complete",
+					style: "default",
+					onPress: async () => {
+						setActionLoading("complete");
+						try {
+							await completeRouteRun({
+								routeRunId: runId as Id<"routeRuns">,
+							});
+							router.replace("/dashboard/route-history");
+						} catch (error) {
+							Alert.alert(
+								"Error",
+								error instanceof Error
+									? error.message
+									: "Failed to complete route",
+							);
+						} finally {
+							setActionLoading(null);
+						}
+					},
 				},
-			},
-		]);
+			],
+		);
 	};
 
 	const handleCancel = () => {
@@ -198,7 +207,12 @@ export default function ActiveRunScreen() {
 
 	return (
 		<SafeAreaView className="flex-1">
-			<Stack.Screen options={{ title: activeRun.route?.name ?? "Route Run" }} />
+			<Stack.Screen
+				options={{
+					title: activeRun.route?.name ?? "Route Run",
+					headerShown: false,
+				}}
+			/>
 			<ScrollView
 				className="px-6 py-6"
 				contentContainerStyle={{ paddingBottom: 40 }}
@@ -235,7 +249,9 @@ export default function ActiveRunScreen() {
 
 				<View className="bg-card border-border mt-5 rounded-xl border p-4">
 					<View className="mb-2 flex-row items-center justify-between">
-						<Text className="text-foreground text-sm font-semibold">Progress</Text>
+						<Text className="text-foreground text-sm font-semibold">
+							Progress
+						</Text>
 						<Text className="text-muted-foreground text-xs">
 							{completedCount} / {totalCount}
 						</Text>
@@ -318,7 +334,8 @@ export default function ActiveRunScreen() {
 										</View>
 										{visit.reachedAt ? (
 											<Text className="text-muted-foreground mt-1 ml-8 text-xs">
-												Reached at {new Date(visit.reachedAt).toLocaleTimeString()}
+												Reached at{" "}
+												{new Date(visit.reachedAt).toLocaleTimeString()}
 											</Text>
 										) : null}
 									</View>
@@ -351,7 +368,9 @@ export default function ActiveRunScreen() {
 											onPress={() => handleMarkReached(visit._id)}
 											disabled={isLoading}
 											className={`flex-1 rounded-lg py-2 ${
-												isLoading ? "bg-green-300" : "bg-green-500 active:bg-green-600"
+												isLoading
+													? "bg-green-300"
+													: "bg-green-500 active:bg-green-600"
 											}`}
 										>
 											{isLoading ? (
@@ -366,7 +385,9 @@ export default function ActiveRunScreen() {
 											onPress={() => handleSkip(visit._id)}
 											disabled={isLoading}
 											className={`flex-1 rounded-lg py-2 ${
-												isLoading ? "bg-amber-300" : "bg-amber-500 active:bg-amber-600"
+												isLoading
+													? "bg-amber-300"
+													: "bg-amber-500 active:bg-amber-600"
 											}`}
 										>
 											<Text className="text-center text-sm font-semibold text-white">
