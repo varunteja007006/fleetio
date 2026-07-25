@@ -1,8 +1,16 @@
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { useQuery } from "convex/react";
-import { Stack } from "expo-router";
-import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { useMutation, useQuery } from "convex/react";
+import { Stack, useRouter } from "expo-router";
+import { useState } from "react";
+import {
+	ActivityIndicator,
+	Alert,
+	Pressable,
+	ScrollView,
+	Text,
+	View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 function getDisplayName(
@@ -124,13 +132,31 @@ const AdminRoutesView = () => {
 };
 
 const DriverRoutesView = () => {
+	const router = useRouter();
 	const myAssignments = useQuery(api.routeAssignments.listByDriver);
+	const startRouteRun = useMutation(api.routeRuns.startRouteRun);
+	const [startingRouteId, setStartingRouteId] = useState<string | null>(null);
 
 	const assignedRoutes = myAssignments ?? [];
 
+	const handleStartRoute = async (routeId: string) => {
+		setStartingRouteId(routeId);
+		try {
+			const runId = await startRouteRun({ routeId });
+			router.replace(`/dashboard/active-run?runId=${runId}`);
+		} catch (error) {
+			Alert.alert(
+				"Failed to start route",
+				error instanceof Error ? error.message : "Please try again.",
+			);
+		} finally {
+			setStartingRouteId(null);
+		}
+	};
+
 	return (
 		<SafeAreaView className="flex-1">
-			<Stack.Screen options={{ title: "My Routes", headerShown: false }} />
+			<Stack.Screen options={{ title: "Routes", headerShown: false }} />
 			<ScrollView
 				className="px-6 py-6"
 				contentContainerStyle={{ paddingBottom: 40 }}
@@ -153,36 +179,63 @@ const DriverRoutesView = () => {
 							</Text>
 						</View>
 					) : (
-						assignedRoutes.map((a) => (
-							<View
-								key={a._id}
-								className="bg-card border-border rounded-xl border p-4"
-							>
-								<Text className="text-foreground text-base font-semibold">
-									{a.route?.name ?? "Unknown route"}
-								</Text>
-								{a.route?.description ? (
-									<Text className="text-muted-foreground mt-1 text-sm">
-										{a.route.description}
-									</Text>
-								) : null}
-								<View className="mt-3 flex-row flex-wrap items-center gap-2">
-									<View
-										className={`rounded-full px-3 py-0.5 ${
-											a.active ? "bg-green-100" : "bg-muted"
-										}`}
-									>
-										<Text
-											className={`text-xs font-semibold ${
-												a.active ? "text-green-700" : "text-muted-foreground"
+						assignedRoutes.map((a) => {
+							const isLoading = startingRouteId === a._id;
+
+							return (
+								<View
+									key={a._id}
+									className="bg-card border-border rounded-xl border p-4"
+								>
+									<View className="flex-row items-start">
+										<View className="flex-1 pr-3">
+											<Text
+												numberOfLines={2}
+												className="text-foreground text-base font-semibold"
+											>
+												{a.route?.name ?? "Unknown route"}
+											</Text>
+											{a.route?.description ? (
+												<Text
+													numberOfLines={2}
+													className="text-muted-foreground mt-1 text-sm"
+												>
+													{a.route.description}
+												</Text>
+											) : null}
+										</View>
+										<Pressable
+											onPress={() => handleStartRoute(a._id)}
+											disabled={isLoading}
+											className="shrink-0 bg-primary rounded-lg px-4 py-2"
+										>
+											{isLoading ? (
+												<ActivityIndicator color="#ffffff" size="small" />
+											) : (
+												<Text className="text-primary-foreground font-semibold text-sm">
+													Start
+												</Text>
+											)}
+										</Pressable>
+									</View>
+									<View className="mt-3 flex-row flex-wrap items-center gap-2">
+										<View
+											className={`rounded-full px-3 py-0.5 ${
+												a.active ? "bg-green-100" : "bg-muted"
 											}`}
 										>
-											{a.active ? "Active" : "Inactive"}
-										</Text>
+											<Text
+												className={`text-xs font-semibold ${
+													a.active ? "text-green-700" : "text-muted-foreground"
+												}`}
+											>
+												{a.active ? "Active" : "Inactive"}
+											</Text>
+										</View>
 									</View>
 								</View>
-							</View>
-						))
+							);
+						})
 					)}
 				</View>
 			</ScrollView>

@@ -16,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import z from "zod";
 
 import { useAppForm } from "~/components/forms/hooks";
+import { LocationPicker } from "~/components/maps/location-picker";
 
 const updateRouteSchema = z.object({
 	name: z.string().min(1, "Route name is required"),
@@ -392,6 +393,9 @@ export default function RouteAdminDetailScreen() {
 							<Text className="text-foreground mb-3 text-base font-semibold">
 								New checkpoint
 							</Text>
+							<Text className="text-muted-foreground mb-1 text-xs font-medium">
+								Name
+							</Text>
 							<TextInput
 								value={addName}
 								onChangeText={setAddName}
@@ -400,26 +404,19 @@ export default function RouteAdminDetailScreen() {
 								className="bg-background text-foreground border-border mb-2 rounded-lg border px-4 py-3 text-base"
 								editable={!addingCheckpoint}
 							/>
-							<View className="mb-2 flex-row gap-2">
-								<TextInput
-									value={addLat}
-									onChangeText={setAddLat}
-									placeholder="Latitude"
-									placeholderTextColor="#9ca3af"
-									keyboardType="numeric"
-									className="bg-background text-foreground border-border flex-1 rounded-lg border px-4 py-3 text-base"
-									editable={!addingCheckpoint}
-								/>
-								<TextInput
-									value={addLng}
-									onChangeText={setAddLng}
-									placeholder="Longitude"
-									placeholderTextColor="#9ca3af"
-									keyboardType="numeric"
-									className="bg-background text-foreground border-border flex-1 rounded-lg border px-4 py-3 text-base"
-									editable={!addingCheckpoint}
+							<View className="mb-2">
+								<LocationPicker
+									latitude={addLat ? parseFloat(addLat) : null}
+									longitude={addLng ? parseFloat(addLng) : null}
+									onLocationChange={(lat, lng) => {
+										setAddLat(lat.toString());
+										setAddLng(lng.toString());
+									}}
 								/>
 							</View>
+							<Text className="text-muted-foreground mb-1 text-xs font-medium">
+								Travel time (min)
+							</Text>
 							<TextInput
 								value={addTravelTime}
 								onChangeText={setAddTravelTime}
@@ -462,6 +459,9 @@ export default function RouteAdminDetailScreen() {
 								>
 									{editingCheckpointId === cp._id ? (
 										<View>
+											<Text className="text-muted-foreground mb-1 text-xs font-medium">
+												Name
+											</Text>
 											<TextInput
 												value={editName}
 												onChangeText={setEditName}
@@ -470,26 +470,19 @@ export default function RouteAdminDetailScreen() {
 												className="bg-background text-foreground border-border mb-2 rounded-lg border px-4 py-3 text-base"
 												editable={!savingEdit}
 											/>
-											<View className="mb-2 flex-row gap-2">
-												<TextInput
-													value={editLat}
-													onChangeText={setEditLat}
-													placeholder="Latitude"
-													placeholderTextColor="#9ca3af"
-													keyboardType="numeric"
-													className="bg-background text-foreground border-border flex-1 rounded-lg border px-4 py-3 text-base"
-													editable={!savingEdit}
-												/>
-												<TextInput
-													value={editLng}
-													onChangeText={setEditLng}
-													placeholder="Longitude"
-													placeholderTextColor="#9ca3af"
-													keyboardType="numeric"
-													className="bg-background text-foreground border-border flex-1 rounded-lg border px-4 py-3 text-base"
-													editable={!savingEdit}
+											<View className="mb-2">
+												<LocationPicker
+													latitude={editLat ? parseFloat(editLat) : null}
+													longitude={editLng ? parseFloat(editLng) : null}
+													onLocationChange={(lat, lng) => {
+														setEditLat(lat.toString());
+														setEditLng(lng.toString());
+													}}
 												/>
 											</View>
+											<Text className="text-muted-foreground mb-1 text-xs font-medium">
+												Travel time (min)
+											</Text>
 											<TextInput
 												value={editTravelTime}
 												onChangeText={setEditTravelTime}

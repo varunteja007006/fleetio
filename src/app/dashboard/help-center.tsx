@@ -7,7 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const faqs = [
 	{
 		q: "How do I start a route?",
-		a: "Navigate to the Routes tab, select a route, and tap 'Start Route'. Make sure you have an active assignment.",
+		a: "Navigate to the Routes tab, select a route, and tap 'Start'. Make sure you have an active assignment.",
 	},
 	{
 		q: "How do I report an incident?",

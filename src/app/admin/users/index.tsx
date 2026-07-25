@@ -1,7 +1,7 @@
 import { api } from "@/convex/_generated/api";
 import { usePaginatedQuery } from "convex/react";
 import { Stack, useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
 	ActivityIndicator,
 	Pressable,
@@ -54,11 +54,16 @@ export default function AdminUsersScreen() {
 
 	const users = usePaginatedQuery(
 		api.profile.allProfiles,
-		{},
+		{
+			statusFilter: statusFilter === "all" ? "all" : statusFilter,
+			searchQuery: searchQuery.trim() || undefined,
+		},
 		{
 			initialNumItems: 10,
 		},
 	);
+
+	const profiles = users.results ?? [];
 
 	const isLoading =
 		users === undefined || users.isLoading || users.results === undefined;
@@ -67,33 +72,6 @@ export default function AdminUsersScreen() {
 	const hasMoreResults = users.status === "CanLoadMore";
 	const loadingMoreResults = users.status === "LoadingMore";
 	const loadingFirstPage = users.status === "LoadingFirstPage";
-
-	const filteredUsers = useMemo(() => {
-		if (!users.results) return [];
-
-		let result = users.results;
-
-		if (statusFilter !== "all") {
-			result = result.filter((user) => user.status === statusFilter);
-		}
-
-		if (searchQuery.trim()) {
-			const query = searchQuery.toLowerCase().trim();
-			result = result.filter((user) => {
-				const name =
-					`${user.firstName ?? ""} ${user.lastName ?? ""}`.toLowerCase();
-				const phone = (user.phoneNumber ?? "").toLowerCase();
-				const email = (user.email ?? "").toLowerCase();
-				return (
-					name.includes(query) ||
-					phone.includes(query) ||
-					email.includes(query)
-				);
-			});
-		}
-
-		return result;
-	}, [users.results, statusFilter, searchQuery]);
 
 	return (
 		<SafeAreaView className="flex-1">
@@ -156,12 +134,12 @@ export default function AdminUsersScreen() {
 
 					{isLoading ? (
 						<ActivityIndicator className="mt-4" />
-					) : filteredUsers.length === 0 ? (
+					) : profiles.length === 0 ? (
 						<Text className="text-muted-foreground mt-4 text-center text-sm">
 							No users found.
 						</Text>
 					) : (
-						filteredUsers.map((user) => (
+						profiles.map((user) => (
 							<Pressable
 								key={user._id}
 								onPress={() => router.push(`/admin/users/${user._id}`)}
@@ -236,7 +214,7 @@ export default function AdminUsersScreen() {
 					</Pressable>
 				)}
 
-				{noMoreResults && filteredUsers.length > 0 && (
+				{noMoreResults && profiles.length > 0 && (
 					<Text className="text-muted-foreground mt-4 text-center text-sm">
 						All users loaded.
 					</Text>

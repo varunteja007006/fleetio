@@ -68,7 +68,7 @@ export default function ActiveRunScreen() {
 			<SafeAreaView className="flex-1 items-center justify-center">
 				<Text className="text-muted-foreground">No active run found.</Text>
 				<Pressable
-					onPress={() => router.push("/dashboard/start-route")}
+					onPress={() => router.push("/dashboard/(tabs)/routes")}
 					className="bg-primary mt-4 rounded-lg px-6 py-2"
 				>
 					<Text className="text-primary-foreground font-semibold">
@@ -94,7 +94,7 @@ export default function ActiveRunScreen() {
 					Run not found
 				</Text>
 				<Pressable
-					onPress={() => router.push("/dashboard/start-route")}
+					onPress={() => router.push("/dashboard/(tabs)/routes")}
 					className="bg-primary rounded-lg px-6 py-2"
 				>
 					<Text className="text-primary-foreground font-semibold">

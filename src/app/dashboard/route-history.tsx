@@ -82,7 +82,7 @@ export default function RouteHistoryScreen() {
 								Start a route to see your history here.
 							</Text>
 							<Pressable
-								onPress={() => router.push("/dashboard/start-route")}
+								onPress={() => router.push("/dashboard/(tabs)/routes")}
 								className="bg-primary mt-4 rounded-lg px-6 py-2"
 							>
 								<Text className="text-primary-foreground font-semibold">

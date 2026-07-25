@@ -164,7 +164,7 @@ const Dashboard = () => {
 							</Pressable>
 							{!isAdminOrManager ? (
 							<Pressable
-								onPress={() => router.push("/dashboard/start-route")}
+								onPress={() => router.push("/dashboard/(tabs)/routes")}
 								className="flex-1 items-center rounded-2xl border border-border bg-card px-4 py-5 shadow-sm active:opacity-70"
 							>
 								<View className="mb-2 h-10 w-10 items-center justify-center rounded-xl bg-chart-3/15">
