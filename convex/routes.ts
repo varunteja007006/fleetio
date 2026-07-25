@@ -26,13 +26,18 @@ export const list = query({
 		includeDeleted: v.optional(v.boolean()),
 	},
 	handler: async (ctx, args) => {
-		const routes = await ctx.db.query("routes").withIndex("byName").take(10000);
-
 		if (args.includeDeleted) {
-			return routes;
+			return await ctx.db
+				.query("routes")
+				.withIndex("byName")
+				.take(10000);
 		}
 
-		return routes.filter((route) => !route.isDeleted);
+		return await ctx.db
+			.query("routes")
+			.withIndex("by_isDeleted", (q) => q.eq("isDeleted", false))
+			.order("desc")
+			.take(10000);
 	},
 });
 
@@ -116,7 +121,10 @@ export const remove = mutation({
 export const routesStats = query({
 	args: {},
 	handler: async (ctx, _args) => {
-		const allRoutes = await ctx.db.query("routes").withIndex("byName").take(10000);
-		return { totalRoutes: allRoutes.filter((r) => !r.isDeleted).length };
+		const activeRoutes = await ctx.db
+			.query("routes")
+			.withIndex("by_isDeleted", (q) => q.eq("isDeleted", false))
+			.take(10000);
+		return { totalRoutes: activeRoutes.length };
 	},
 });

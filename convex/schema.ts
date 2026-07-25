@@ -41,14 +41,17 @@ export default defineSchema({
 		isDeleted: v.boolean(),
 	}).index("by_auth_user", ["authUserId"])
 		.index("by_status", ["status"])
-		.index("by_status_and_role", ["status", "role"]),
+		.index("by_status_and_role", ["status", "role"])
+		.index("by_isDeleted", ["isDeleted"])
+		.index("by_status_and_isDeleted", ["status", "isDeleted"]),
 
 	routes: defineTable({
 		name: v.string(),
 		description: v.optional(v.string()),
 
 		isDeleted: v.boolean(),
-	}).index("byName", ["name"]),
+	}).index("byName", ["name"])
+		.index("by_isDeleted", ["isDeleted"]),
 
 	checkpoints: defineTable({
 		routeId: v.id("routes"),

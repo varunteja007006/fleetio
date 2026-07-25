@@ -71,13 +71,52 @@ export const getUserProfileById = query({
 });
 
 export const allProfiles = query({
-	args: { paginationOpts: paginationOptsValidator },
+	args: {
+		paginationOpts: paginationOptsValidator,
+		statusFilter: v.optional(
+			v.union(
+				v.literal("all"),
+				v.literal("pending"),
+				v.literal("approved"),
+				v.literal("rejected"),
+			),
+		),
+		searchQuery: v.optional(v.string()),
+	},
 	handler: async (ctx, args) => {
-		const profiles = await ctx.db
-			.query("profiles")
-			.order("desc")
-			.paginate(args.paginationOpts);
-		return profiles;
+		const statusFilter = args.statusFilter;
+		let query = ctx.db.query("profiles");
+
+		if (statusFilter && statusFilter !== "all") {
+			query = query
+				.withIndex("by_status_and_isDeleted", (q) =>
+					q.eq("status", statusFilter).eq("isDeleted", false),
+				)
+				.order("desc");
+		} else {
+			query = query
+				.withIndex("by_isDeleted", (q) => q.eq("isDeleted", false))
+				.order("desc");
+		}
+
+		const result = await query.paginate(args.paginationOpts);
+
+		const rawSearch = args.searchQuery;
+		if (rawSearch?.trim()) {
+			const q = rawSearch.trim().toLowerCase();
+			const filtered = result.page.filter((profile) => {
+				const name =
+					`${profile.firstName ?? ""} ${profile.lastName ?? ""}`.toLowerCase();
+				const phone = (profile.phoneNumber ?? "").toLowerCase();
+				const email = (profile.email ?? "").toLowerCase();
+				return (
+					name.includes(q) || phone.includes(q) || email.includes(q)
+				);
+			});
+			return { ...result, page: filtered };
+		}
+
+		return result;
 	},
 });
 
@@ -203,7 +242,7 @@ export const getPendingProfiles = query({
 		const pendingProfiles = await ctx.db
 			.query("profiles")
 			.withIndex("by_status", (q) => q.eq("status", "pending"))
-			.take(100);
+			.take(10000);
 
 		return pendingProfiles;
 	},
@@ -228,7 +267,7 @@ export const getDrivers = query({
 			.withIndex("by_status_and_role", (q) =>
 				q.eq("status", "approved").eq("role", "driver"),
 			)
-			.take(100);
+			.take(10000);
 
 		return profiles;
 	},

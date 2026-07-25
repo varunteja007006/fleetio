@@ -12,6 +12,7 @@ import type * as auth from "../auth.js";
 import type * as checkpoints from "../checkpoints.js";
 import type * as crons from "../crons.js";
 import type * as driverLocations from "../driverLocations.js";
+import type * as geocode from "../geocode.js";
 import type * as help from "../help.js";
 import type * as http from "../http.js";
 import type * as otp from "../otp.js";
@@ -33,6 +34,7 @@ declare const fullApi: ApiFromModules<{
   checkpoints: typeof checkpoints;
   crons: typeof crons;
   driverLocations: typeof driverLocations;
+  geocode: typeof geocode;
   help: typeof help;
   http: typeof http;
   otp: typeof otp;
