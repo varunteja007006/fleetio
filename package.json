@@ -10,7 +10,7 @@
     "@react-native-vector-icons/lucide": "^13.1.2",
     "@tanstack/react-form": "^1.33.0",
     "better-auth": "~1.6.15",
-    "convex": "^1.42.1",
+    "convex": "^1.42.3",
     "expo": "~56.0.16",
     "expo-constants": "~56.0.21",
     "expo-dev-client": "~56.0.23",

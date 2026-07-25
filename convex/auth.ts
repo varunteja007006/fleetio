@@ -46,9 +46,9 @@ export const { onCreate } = authComponent.triggersApi();
 
 export const createAuth = (ctx: GenericCtx<DataModel>) => {
 	return betterAuth({
-		trustedOrigins: ["your-scheme://"],
+		trustedOrigins: ["fleetio://"],
 		baseURL: {
-			allowedHosts: ["exp://*.*.*.*:8081", "*.*.convex.site"],
+			allowedHosts: ["exp://*.*.*.*:8081", "*.*.convex.site", "fleetio://"],
 		},
 		database: authComponent.adapter(ctx),
 		// Configure simple, non-verified email/password to get started
