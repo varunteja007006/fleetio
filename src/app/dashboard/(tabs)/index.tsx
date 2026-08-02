@@ -158,6 +158,19 @@ const Dashboard = () => {
 									Routes
 								</Text>
 							</Pressable>
+							{isAdminOrManager ? (
+								<Pressable
+									onPress={() => router.push("/dashboard/fleet")}
+									className="flex-1 items-center rounded-2xl border border-border bg-card px-4 py-5 shadow-sm active:opacity-70"
+								>
+									<View className="mb-2 h-10 w-10 items-center justify-center rounded-xl bg-chart-3/15">
+										<Lucide name="map-pin" size={20} color="#7c3aed" />
+									</View>
+									<Text className="text-foreground text-sm font-medium">
+										Fleet
+									</Text>
+								</Pressable>
+							) : null}
 							<Pressable
 								onPress={() => router.push("/dashboard/edit-profile")}
 								className="flex-1 items-center rounded-2xl border border-border bg-card px-4 py-5 shadow-sm active:opacity-70"

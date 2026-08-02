@@ -6,6 +6,8 @@ const crons = cronJobs();
 
 crons.interval("check for delays", { minutes: 5 }, internal.crons.checkForDelays, {});
 
+crons.interval("sync vehicle locations", { minutes: 5 }, internal.sync.pollVehicles, {});
+
 export default crons;
 
 export const checkForDelays = internalMutation({
@@ -14,8 +16,10 @@ export const checkForDelays = internalMutation({
 		const now = Date.now();
 		const gracePeriodMs = 15 * 60 * 1000;
 
-		const allRuns = await ctx.db.query("routeRuns").take(1000);
-		const activeRuns = allRuns.filter((r) => r.status === "running");
+		const activeRuns = await ctx.db
+			.query("routeRuns")
+			.withIndex("by_status", (q) => q.eq("status", "running"))
+			.take(1000);
 
 		for (const run of activeRuns) {
 			const visits = await ctx.db
@@ -26,15 +30,18 @@ export const checkForDelays = internalMutation({
 			const pendingVisits = visits.filter((v) => v.status === "pending");
 			if (pendingVisits.length === 0) continue;
 
-			const allCheckpoints = await ctx.db.query("checkpoints").take(10000);
-			const routeCheckpoints = allCheckpoints
-				.filter((cp) => cp.routeId === run.routeId && !cp.isDeleted)
-				.sort((a, b) => a.sequence - b.sequence);
+			const routeCheckpoints = (await ctx.db
+				.query("checkpoints")
+				.withIndex("by_routeId_and_isDeleted", (q) =>
+					q.eq("routeId", run.routeId).eq("isDeleted", false),
+				)
+				.take(1000))
+				.sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0));
 
 			let cumulativeMinutes = 0;
 			const expectedMinutesByCheckpoint: Record<string, number> = {};
 			for (const cp of routeCheckpoints) {
-				cumulativeMinutes += cp.expectedTravelMinutes;
+				cumulativeMinutes += cp.expectedTravelMinutes ?? 0;
 				expectedMinutesByCheckpoint[cp._id] = cumulativeMinutes;
 			}
 

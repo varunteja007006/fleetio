@@ -2,7 +2,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import Luicide from "@react-native-vector-icons/lucide";
 import { useMutation, usePaginatedQuery, useQuery } from "convex/react";
-import { Stack, useRouter } from "expo-router";
+import { Stack } from "expo-router";
 import { useState } from "react";
 import {
 	ActivityIndicator,
@@ -16,6 +16,7 @@ import {
 	View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import AdminHeader from "~/components/admin-header";
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -47,7 +48,6 @@ const FILTER_TABS: { value: TypeFilter; label: string }[] = [
 ];
 
 export default function AdminRequestsScreen() {
-	const router = useRouter();
 	const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
 	const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
 
@@ -120,16 +120,14 @@ export default function AdminRequestsScreen() {
 		<SafeAreaView className="flex-1">
 			<Stack.Screen options={{ headerShown: false }} />
 
-			<View className="flex-row items-center px-4 py-3">
-				<Pressable onPress={() => router.back()} className="mr-3 p-1">
-					<Luicide name="arrow-left" size={24} color="#9ca3af" />
-				</Pressable>
-				<Text className="text-foreground text-xl font-bold">
-					Requests & Feedback
-				</Text>
+			<View className="px-4 py-3">
+				<AdminHeader
+					title="Requests & Feedback"
+					subtitle="Review submitted feedback, feature requests, and bug reports."
+				/>
 			</View>
 
-			<ScrollView className="flex-1 px-6 pb-8">
+			<ScrollView className="px-6 pb-8">
 				{report && (
 					<View className="mb-4 flex-row gap-3">
 						<View className="border-border bg-card flex-1 rounded-xl border p-3">
@@ -250,8 +248,7 @@ export default function AdminRequestsScreen() {
 									<View
 										className="rounded-full px-2.5 py-0.5"
 										style={{
-											backgroundColor:
-												REQUEST_TYPE_COLORS[req.type] + "20",
+											backgroundColor: REQUEST_TYPE_COLORS[req.type] + "20",
 										}}
 									>
 										<Text
@@ -285,20 +282,24 @@ export default function AdminRequestsScreen() {
 										{req.user
 											? [req.user.firstName, req.user.lastName]
 													.filter(Boolean)
-													.join(" ") || req.user.phoneNumber || req.user.email || "Unknown"
+													.join(" ") ||
+												req.user.phoneNumber ||
+												req.user.email ||
+												"Unknown"
 											: "Unknown User"}
 									</Text>
 								</View>
 								{req.imageUrls && req.imageUrls.length > 0 && (
 									<View className="mt-3 flex-row flex-wrap gap-2">
 										{req.imageUrls
-											.map((url, i) => ({ url, storageId: req.imageStorageIds[i] }))
+											.map((url, i) => ({
+												url,
+												storageId: req.imageStorageIds[i],
+											}))
 											.filter(({ url }) => Boolean(url))
 											.map(({ url, storageId }, i) => (
 												<View key={i} className="relative">
-													<Pressable
-														onPress={() => setSelectedImageUrl(url!)}
-													>
+													<Pressable onPress={() => setSelectedImageUrl(url!)}>
 														<Image
 															source={{ uri: url! }}
 															className="rounded-xl border border-white/10"

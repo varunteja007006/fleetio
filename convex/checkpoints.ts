@@ -7,11 +7,14 @@ export const listByRoute = query({
 		routeId: v.id("routes"),
 	},
 	handler: async (ctx, args) => {
-		const checkpoints = await ctx.db.query("checkpoints").take(10000);
+		const checkpoints = await ctx.db
+			.query("checkpoints")
+			.withIndex("by_routeId_and_isDeleted", (q) =>
+				q.eq("routeId", args.routeId).eq("isDeleted", false),
+			)
+			.take(1000);
 
-		return checkpoints
-			.filter((cp) => cp.routeId === args.routeId && !cp.isDeleted)
-			.sort((a, b) => a.sequence - b.sequence);
+		return checkpoints.sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0));
 	},
 });
 
@@ -39,14 +42,15 @@ export const create = mutation({
 			throw new Error("Route not found.");
 		}
 
-		const allCheckpoints = await ctx.db.query("checkpoints").take(10000);
-
-		const routeCheckpoints = allCheckpoints.filter(
-			(cp) => cp.routeId === args.routeId && !cp.isDeleted,
-		);
+		const routeCheckpoints = await ctx.db
+			.query("checkpoints")
+			.withIndex("by_routeId_and_isDeleted", (q) =>
+				q.eq("routeId", args.routeId).eq("isDeleted", false),
+			)
+			.take(1000);
 
 		const maxSequence = routeCheckpoints.reduce(
-			(max, cp) => Math.max(max, cp.sequence),
+			(max, cp) => Math.max(max, cp.sequence ?? -1),
 			-1,
 		);
 
@@ -142,14 +146,14 @@ export const reorder = mutation({
 			throw new Error("Checkpoint not found.");
 		}
 
-		const allCheckpoints = await ctx.db.query("checkpoints").take(10000);
-
-		const routeCheckpoints = allCheckpoints
-			.filter(
-				(cp) =>
-					cp.routeId === checkpoint.routeId && !cp.isDeleted && cp._id !== args.checkpointId,
+		const routeCheckpoints = (await ctx.db
+			.query("checkpoints")
+			.withIndex("by_routeId_and_isDeleted", (q) =>
+				q.eq("routeId", checkpoint.routeId).eq("isDeleted", false),
 			)
-			.sort((a, b) => a.sequence - b.sequence);
+			.take(1000))
+			.filter((cp) => cp._id !== args.checkpointId)
+			.sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0));
 
 		const clampedSequence = Math.max(
 			0,

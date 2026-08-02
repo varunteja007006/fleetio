@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import z from "zod";
 
+import AdminHeader from "~/components/admin-header";
 import { useAppForm } from "~/components/forms/hooks";
 import { LocationPicker } from "~/components/maps/location-picker";
 
@@ -187,13 +188,13 @@ export default function RouteAdminDetailScreen() {
 		name: string;
 		latitude: number;
 		longitude: number;
-		expectedTravelMinutes: number;
+		expectedTravelMinutes?: number;
 	}) => {
 		setEditingCheckpointId(cp._id);
 		setEditName(cp.name);
 		setEditLat(cp.latitude.toString());
 		setEditLng(cp.longitude.toString());
-		setEditTravelTime(cp.expectedTravelMinutes.toString());
+		setEditTravelTime((cp.expectedTravelMinutes ?? 0).toString());
 	};
 
 	const handleSaveEdit = async (checkpointId: Id<"checkpoints">) => {
@@ -311,10 +312,10 @@ export default function RouteAdminDetailScreen() {
 				className="px-6 py-6"
 				contentContainerStyle={{ paddingBottom: 40 }}
 			>
-				<Text className="text-foreground text-2xl font-bold">Edit route</Text>
-				<Text className="text-muted-foreground mt-1 text-sm">
-					Update route table values and save changes.
-				</Text>
+				<AdminHeader
+					title="Edit route"
+					subtitle="Update route table values and save changes."
+				/>
 
 				<View className="bg-card border-border mt-5 rounded-xl border p-4">
 					<View className="mb-3">
@@ -523,7 +524,7 @@ export default function RouteAdminDetailScreen() {
 											<View className="flex-row items-center gap-3">
 												<View className="bg-primary rounded-full px-3 py-1">
 													<Text className="text-primary-foreground text-sm font-bold">
-														{cp.sequence + 1}
+														{(cp.sequence ?? 0) + 1}
 													</Text>
 												</View>
 												<View className="flex-1">
@@ -548,7 +549,7 @@ export default function RouteAdminDetailScreen() {
 												{index > 0 && (
 													<Pressable
 														onPress={() =>
-															handleReorder(cp._id, cp.sequence - 1)
+															handleReorder(cp._id, (cp.sequence ?? 0) - 1)
 														}
 														className="bg-secondary rounded-lg px-3 py-2 active:opacity-80"
 													>
@@ -560,7 +561,7 @@ export default function RouteAdminDetailScreen() {
 												{index < checkpoints.length - 1 && (
 													<Pressable
 														onPress={() =>
-															handleReorder(cp._id, cp.sequence + 1)
+															handleReorder(cp._id, (cp.sequence ?? 0) + 1)
 														}
 														className="bg-secondary rounded-lg px-3 py-2 active:opacity-80"
 													>

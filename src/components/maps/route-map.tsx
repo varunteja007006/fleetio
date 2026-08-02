@@ -8,7 +8,8 @@ type CheckpointData = {
 	name: string;
 	latitude: number;
 	longitude: number;
-	sequence: number;
+	sequence?: number;
+	isDeleted?: boolean;
 };
 
 type VisitData = {

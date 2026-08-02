@@ -1,44 +1,26 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { Doc, Id } from "./_generated/dataModel";
+import { mutation, query, type MutationCtx } from "./_generated/server";
 import { authComponent } from "./auth";
-
-function haversineDistance(
-	lat1: number,
-	lng1: number,
-	lat2: number,
-	lng2: number,
-): number {
-	const R = 6371000;
-	const toRad = (deg: number) => (deg * Math.PI) / 180;
-	const dLat = toRad(lat2 - lat1);
-	const dLng = toRad(lng2 - lng1);
-	const a =
-		Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-		Math.cos(toRad(lat1)) *
-			Math.cos(toRad(lat2)) *
-			Math.sin(dLng / 2) *
-			Math.sin(dLng / 2);
-	const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-	return R * c;
-}
+import { haversineDistance } from "./geo";
 
 const PROXIMITY_THRESHOLD = 100;
 
 async function autoDetectCheckpoints(
-	ctx: any,
-	routeRunId: any,
+	ctx: MutationCtx,
+	routeRunId: Id<"routeRuns">,
 	latitude: number,
 	longitude: number,
 ) {
-	const visits = await ctx.db
+	const visits: Doc<"checkpointVisits">[] = await ctx.db
 		.query("checkpointVisits")
 		.withIndex("by_routeRunId", (q) => q.eq("routeRunId", routeRunId))
 		.take(1000);
 
-	const pendingVisits = visits.filter((v: any) => v.status === "pending");
+	const pendingVisits = visits.filter((v) => v.status === "pending");
 
 	await Promise.all(
-		pendingVisits.map(async (visit: any) => {
+		pendingVisits.map(async (visit) => {
 			const checkpoint = await ctx.db.get(visit.checkpointId);
 			if (!checkpoint || checkpoint.isDeleted) return;
 

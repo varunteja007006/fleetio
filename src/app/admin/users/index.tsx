@@ -11,6 +11,7 @@ import {
 	View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import AdminHeader from "~/components/admin-header";
 
 type StatusFilter = "all" | "pending" | "approved" | "rejected";
 
@@ -80,10 +81,10 @@ export default function AdminUsersScreen() {
 				className="px-6 py-6"
 				contentContainerStyle={{ paddingBottom: 40 }}
 			>
-				<Text className="text-foreground text-2xl font-bold">Users</Text>
-				<Text className="text-muted-foreground mt-1 text-sm">
-					Manage your users here.
-				</Text>
+				<AdminHeader
+					title="Users"
+					subtitle="Manage your users here."
+				/>
 
 				{/* Search bar */}
 				<View className="bg-card border-border mt-5 rounded-xl border px-4 py-3">

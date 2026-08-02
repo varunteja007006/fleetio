@@ -12,6 +12,7 @@ import {
 	View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import AdminHeader from "~/components/admin-header";
 
 type DriverOption = {
 	_id: Id<"profiles">;
@@ -96,10 +97,10 @@ export default function AssignmentsAdminScreen() {
 				className="px-6 py-6"
 				contentContainerStyle={{ paddingBottom: 40 }}
 			>
-				<Text className="text-foreground text-2xl font-bold">Route Assignments</Text>
-				<Text className="text-muted-foreground mt-1 text-sm">
-					Assign routes to drivers and manage existing assignments.
-				</Text>
+				<AdminHeader
+					title="Route Assignments"
+					subtitle="Assign routes to drivers and manage existing assignments."
+				/>
 
 				<Pressable
 					onPress={() => setShowCreateForm(!showCreateForm)}

@@ -1,8 +1,9 @@
 import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
-import { Stack, useRouter } from "expo-router";
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
+import { Stack, useRouter, type Href } from "expo-router";
+import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import AdminCard from "~/components/admin-card";
 
 const AdminDashboard = () => {
 	const router = useRouter();
@@ -15,6 +16,56 @@ const AdminDashboard = () => {
 	const stats = [
 		{ label: "Total Routes", value: totalRoutes, accent: "bg-blue-500" },
 		{ label: "Pending Approvals", value: pendingCount, accent: "bg-amber-500" },
+	];
+
+	const actions: {
+		title: string;
+		description: string;
+		accent: string;
+		href: Href;
+	}[] = [
+		{
+			title: "Manage Routes",
+			description: "Create, edit, and archive route table entries for your fleet.",
+			accent: "bg-blue-500",
+			href: "/admin/route",
+		},
+		{
+			title: "Manage Vehicles",
+			description: "Add fleet vehicles and configure GPS provider connections.",
+			accent: "bg-emerald-500",
+			href: "/admin/vehicles",
+		},
+		{
+			title: "Live Locations",
+			description: "View live vehicle positions grouped by vendor.",
+			accent: "bg-lime-500",
+			href: "/dashboard/live-locations",
+		},
+		{
+			title: "Geofences",
+			description: "Create circular geofence zones with configurable radius.",
+			accent: "bg-violet-500",
+			href: "/admin/geofences",
+		},
+		{
+			title: "Manage Users",
+			description: "Approve, reject, and manage roles for drivers and staff.",
+			accent: "bg-amber-500",
+			href: "/admin/users",
+		},
+		{
+			title: "Route Assignments",
+			description: "Assign routes to drivers and manage existing assignments.",
+			accent: "bg-cyan-500",
+			href: "/admin/assignments",
+		},
+		{
+			title: "View Requests",
+			description: "Review submitted feedback, feature requests, and bug reports.",
+			accent: "bg-rose-500",
+			href: "/admin/requests",
+		},
 	];
 
 	return (
@@ -56,89 +107,16 @@ const AdminDashboard = () => {
 					Quick actions
 				</Text>
 
-				<Pressable
-					onPress={() => router.push("/admin/route")}
-					className="bg-card border-border active:opacity-80 rounded-xl border p-4"
-				>
-					<View className="flex-row items-center justify-between">
-						<View className="flex-1 pr-4">
-							<Text className="text-foreground text-base font-semibold">
-								Manage Routes
-							</Text>
-							<Text className="text-muted-foreground mt-1 text-sm leading-5">
-								Create, edit, and archive route table entries for your fleet.
-							</Text>
-						</View>
-						<View className="bg-primary rounded-lg px-3 py-1.5">
-							<Text className="text-primary-foreground text-sm font-medium">
-								Open
-							</Text>
-						</View>
-					</View>
-				</Pressable>
-
-				<Pressable
-					onPress={() => router.push("/admin/users")}
-					className="bg-card border-border active:opacity-80 mt-3 rounded-xl border p-4"
-				>
-					<View className="flex-row items-center justify-between">
-						<View className="flex-1 pr-4">
-							<Text className="text-foreground text-base font-semibold">
-								Manage Users
-							</Text>
-							<Text className="text-muted-foreground mt-1 text-sm leading-5">
-								Approve, reject, and manage roles for drivers and staff.
-							</Text>
-						</View>
-						<View className="bg-primary rounded-lg px-3 py-1.5">
-							<Text className="text-primary-foreground text-sm font-medium">
-								Open
-							</Text>
-						</View>
-					</View>
-				</Pressable>
-
-				<Pressable
-					onPress={() => router.push("/admin/assignments")}
-					className="bg-card border-border active:opacity-80 mt-3 rounded-xl border p-4"
-				>
-					<View className="flex-row items-center justify-between">
-						<View className="flex-1 pr-4">
-							<Text className="text-foreground text-base font-semibold">
-								Route Assignments
-							</Text>
-							<Text className="text-muted-foreground mt-1 text-sm leading-5">
-								Assign routes to drivers and manage existing assignments.
-							</Text>
-						</View>
-						<View className="bg-primary rounded-lg px-3 py-1.5">
-							<Text className="text-primary-foreground text-sm font-medium">
-								Open
-							</Text>
-						</View>
-					</View>
-				</Pressable>
-
-				<Pressable
-					onPress={() => router.push("/admin/requests")}
-					className="bg-card border-border active:opacity-80 mt-3 rounded-xl border p-4"
-				>
-					<View className="flex-row items-center justify-between">
-						<View className="flex-1 pr-4">
-							<Text className="text-foreground text-base font-semibold">
-								View Requests
-							</Text>
-							<Text className="text-muted-foreground mt-1 text-sm leading-5">
-								Review submitted feedback, feature requests, and bug reports.
-							</Text>
-						</View>
-						<View className="bg-primary rounded-lg px-3 py-1.5">
-							<Text className="text-primary-foreground text-sm font-medium">
-								Open
-							</Text>
-						</View>
-					</View>
-				</Pressable>
+				{actions.map((action, index) => (
+					<AdminCard
+						key={action.title}
+						title={action.title}
+						description={action.description}
+						accent={action.accent}
+						onPress={() => router.push(action.href)}
+						className={index === 0 ? "" : "mt-3"}
+					/>
+				))}
 			</ScrollView>
 		</SafeAreaView>
 	);

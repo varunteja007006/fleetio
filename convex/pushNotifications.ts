@@ -100,6 +100,90 @@ export const sendPushForAlert = internalAction({
 	},
 });
 
+export const notifyForEvent = internalAction({
+	args: {
+		eventId: v.id("events"),
+	},
+	handler: async (ctx, args) => {
+		const event = await ctx.runQuery(internal.pushNotifications.getEventById, {
+			eventId: args.eventId,
+		});
+		if (!event) return;
+
+		const vehicle = await ctx.runQuery(
+			internal.pushNotifications.getVehicleById,
+			{ vehicleId: event.vehicleId },
+		);
+
+		const checkpoint = await ctx.runQuery(
+			internal.pushNotifications.getCheckpointById,
+			{ checkpointId: event.checkpointId },
+		);
+		if (!checkpoint) return;
+
+		const managers = await ctx.runQuery(
+			internal.pushNotifications.getManagerProfiles,
+			{},
+		);
+
+		const pushTokens: string[] = [];
+		for (const m of managers) {
+			if (m.pushToken) {
+				pushTokens.push(m.pushToken);
+			}
+		}
+
+		if (pushTokens.length === 0) return;
+
+		const vehicleName = vehicle?.name ?? "Vehicle";
+		const actionText =
+			event.type === "entered"
+				? "entered"
+				: event.type === "exited"
+					? "exited"
+					: "crossed";
+
+		await fetch(EXPO_PUSH_API, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				to: pushTokens,
+				title: `${checkpoint.name}: ${actionText}`,
+				body: `${vehicleName} ${actionText} ${checkpoint.name}`,
+				data: {
+					type: "geofence",
+					eventId: args.eventId,
+					vehicleId: event.vehicleId,
+					checkpointId: event.checkpointId,
+				},
+			}),
+		});
+	},
+});
+
+export const getEventById = internalQuery({
+	args: { eventId: v.id("events") },
+	handler: async (ctx, args) => {
+		return ctx.db.get(args.eventId);
+	},
+});
+
+export const getVehicleById = internalQuery({
+	args: { vehicleId: v.id("vehicles") },
+	handler: async (ctx, args) => {
+		return ctx.db.get(args.vehicleId);
+	},
+});
+
+export const getCheckpointById = internalQuery({
+	args: { checkpointId: v.id("checkpoints") },
+	handler: async (ctx, args) => {
+		return ctx.db.get(args.checkpointId);
+	},
+});
+
 export const getAlertById = internalQuery({
 	args: { alertId: v.id("alerts") },
 	handler: async (ctx, args) => {

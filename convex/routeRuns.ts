@@ -49,11 +49,13 @@ export const startRouteRun = mutation({
 			status: "running",
 		});
 
-		const checkpoints = await ctx.db.query("checkpoints").take(10000);
-
-		const routeCheckpoints = checkpoints
-			.filter((cp) => cp.routeId === args.routeId && !cp.isDeleted)
-			.sort((a, b) => a.sequence - b.sequence);
+		const routeCheckpoints = (await ctx.db
+			.query("checkpoints")
+			.withIndex("by_routeId_and_isDeleted", (q) =>
+				q.eq("routeId", args.routeId).eq("isDeleted", false),
+			)
+			.take(1000))
+			.sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0));
 
 		await Promise.all(
 			routeCheckpoints.map((cp) =>

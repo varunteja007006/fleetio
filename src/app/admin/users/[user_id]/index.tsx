@@ -13,6 +13,7 @@ import {
 	View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import AdminHeader from "~/components/admin-header";
 
 const STATUS_BADGE: Record<string, { bg: string; text: string }> = {
 	approved: { bg: "bg-green-500/10", text: "text-green-600" },
@@ -177,7 +178,8 @@ export default function AdminUserDetailScreen() {
 				contentContainerStyle={{ paddingBottom: 40 }}
 			>
 				{/* ---- Header ---- */}
-				<View className="flex-row items-start justify-between">
+				<AdminHeader title={userName} subtitle="User management" />
+				<View className="mt-4 flex-row items-start justify-between">
 					<View className="flex-1 flex-row items-center gap-3 pr-4">
 						{avatarUrl ? (
 							<Image
@@ -192,9 +194,6 @@ export default function AdminUserDetailScreen() {
 								</Text>
 							</View>
 						)}
-						<Text className="text-foreground flex-1 text-2xl font-bold">
-							{userName}
-						</Text>
 					</View>
 					<View className="flex-row flex-wrap gap-2">
 						<View className={`rounded-full px-3 py-1 ${statusStyle.bg}`}>

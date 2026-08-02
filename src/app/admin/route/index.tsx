@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import z from "zod";
 
+import AdminHeader from "~/components/admin-header";
 import { useAppForm } from "~/components/forms/hooks";
 
 const createRouteSchema = z.object({
@@ -94,10 +95,10 @@ export default function RouteAdminListScreen() {
 				className="px-6 py-6"
 				contentContainerStyle={{ paddingBottom: 40 }}
 			>
-				<Text className="text-foreground text-2xl font-bold">Routes</Text>
-				<Text className="text-muted-foreground mt-1 text-sm">
-					Create, edit, and archive route table entries.
-				</Text>
+				<AdminHeader
+					title="Routes"
+					subtitle="Create, edit, and archive route table entries."
+				/>
 
 				<View className="bg-card border-border mt-5 rounded-xl border p-4">
 					<Text className="text-foreground mb-4 text-lg font-semibold">

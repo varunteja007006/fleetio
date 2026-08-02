@@ -45,6 +45,64 @@ export default defineSchema({
 		.index("by_isDeleted", ["isDeleted"])
 		.index("by_status_and_isDeleted", ["status", "isDeleted"]),
 
+	vehicles: defineTable({
+		name: v.string(),
+
+		registrationNumber: v.string(),
+
+		make: v.optional(v.string()),
+
+		model: v.optional(v.string()),
+
+		isActive: v.boolean(),
+	}).index("by_isActive", ["isActive"]),
+
+	vehicleIntegrations: defineTable({
+		vehicleId: v.id("vehicles"),
+
+		provider: v.union(
+			v.literal("wheelseye"),
+			v.literal("loconav"),
+			v.literal("jiothings"),
+			v.literal("onelap"),
+		),
+
+		accessToken: v.string(),
+
+		refreshToken: v.optional(v.string()),
+
+		expiresAt: v.optional(v.number()),
+
+		externalVehicleId: v.optional(v.string()),
+
+		lastSyncAt: v.number(),
+
+		status: v.union(
+			v.literal("active"),
+			v.literal("error"),
+			v.literal("disabled"),
+		),
+	}).index("by_vehicleId", ["vehicleId"])
+		.index("by_provider", ["provider"])
+		.index("by_status", ["status"]),
+
+	currentLocations: defineTable({
+		vehicleId: v.id("vehicles"),
+
+		latitude: v.number(),
+		longitude: v.number(),
+
+		speed: v.number(),
+
+		heading: v.number(),
+
+		timestamp: v.number(),
+
+		previousLatitude: v.number(),
+
+		previousLongitude: v.number(),
+	}).index("by_vehicleId", ["vehicleId"]),
+
 	routes: defineTable({
 		name: v.string(),
 		description: v.optional(v.string()),
@@ -54,19 +112,21 @@ export default defineSchema({
 		.index("by_isDeleted", ["isDeleted"]),
 
 	checkpoints: defineTable({
-		routeId: v.id("routes"),
+		routeId: v.optional(v.id("routes")),
 
 		name: v.string(),
 
 		latitude: v.number(),
 		longitude: v.number(),
 
-		sequence: v.number(),
+		radius: v.optional(v.number()),
 
-		expectedTravelMinutes: v.number(),
+		sequence: v.optional(v.number()),
+
+		expectedTravelMinutes: v.optional(v.number()),
 
 		isDeleted: v.boolean(),
-	}),
+	}).index("by_routeId_and_isDeleted", ["routeId", "isDeleted"]),
 
 	routeAssignments: defineTable({
 		routeId: v.id("routes"),
@@ -94,7 +154,8 @@ export default defineSchema({
 			v.literal("delayed"),
 			v.literal("cancelled"),
 		),
-	}).index("by_driverId", ["driverId"]),
+	}).index("by_driverId", ["driverId"])
+		.index("by_status", ["status"]),
 
 	incidents: defineTable({
 		routeRunId: v.id("routeRuns"),
@@ -117,7 +178,9 @@ export default defineSchema({
 	}),
 
 	driverLocations: defineTable({
-		routeRunId: v.id("routeRuns"),
+		routeRunId: v.optional(v.id("routeRuns")),
+
+		vehicleId: v.optional(v.id("vehicles")),
 
 		latitude: v.number(),
 		longitude: v.number(),
@@ -127,7 +190,38 @@ export default defineSchema({
 		heading: v.optional(v.number()),
 
 		timestamp: v.number(),
-	}).index("by_routeRunId", ["routeRunId"]),
+
+		rawProviderResponse: v.optional(v.string()),
+	}).index("by_routeRunId", ["routeRunId"])
+		.index("by_vehicleId", ["vehicleId"])
+		.index("by_vehicleId_and_timestamp", ["vehicleId", "timestamp"]),
+
+	checkpointState: defineTable({
+		vehicleId: v.id("vehicles"),
+
+		checkpointId: v.id("checkpoints"),
+
+		inside: v.boolean(),
+
+		enteredAt: v.optional(v.number()),
+
+		exitedAt: v.optional(v.number()),
+	}).index("by_vehicleId_and_checkpointId", ["vehicleId", "checkpointId"]),
+
+	events: defineTable({
+		vehicleId: v.id("vehicles"),
+
+		checkpointId: v.id("checkpoints"),
+
+		type: v.union(
+			v.literal("entered"),
+			v.literal("exited"),
+			v.literal("crossed"),
+		),
+
+		createdAt: v.number(),
+	}).index("by_vehicleId_and_createdAt", ["vehicleId", "createdAt"])
+		.index("by_checkpointId", ["checkpointId"]),
 
 	checkpointVisits: defineTable({
 		routeRunId: v.id("routeRuns"),
