@@ -21,6 +21,14 @@ function normalizeDescription(description?: string) {
 	return normalizedDescription || undefined;
 }
 
+function normalizeMinutes(minutes?: number) {
+	if (minutes === undefined || isNaN(minutes) || minutes < 0) {
+		return undefined;
+	}
+
+	return minutes;
+}
+
 export const list = query({
 	args: {
 		includeDeleted: v.optional(v.boolean()),
@@ -54,16 +62,30 @@ export const create = mutation({
 	args: {
 		name: v.string(),
 		description: v.optional(v.string()),
+		estimatedMinutes: v.optional(v.number()),
+		graceMinutes: v.optional(v.number()),
 	},
 	handler: async (ctx, args) => {
 		const name = normalizeName(args.name);
 		const description = normalizeDescription(args.description);
+		const estimatedMinutes = normalizeMinutes(args.estimatedMinutes);
+		const graceMinutes = normalizeMinutes(args.graceMinutes);
 
-		return ctx.db.insert("routes", {
+		const patch: {
+			name: string;
+			description?: string;
+			estimatedMinutes?: number;
+			graceMinutes?: number;
+			isDeleted: boolean;
+		} = {
 			name,
 			description,
+			estimatedMinutes,
+			graceMinutes,
 			isDeleted: false,
-		});
+		};
+
+		return ctx.db.insert("routes", patch);
 	},
 });
 
@@ -72,6 +94,8 @@ export const update = mutation({
 		routeId: v.id("routes"),
 		name: v.optional(v.string()),
 		description: v.optional(v.string()),
+		estimatedMinutes: v.optional(v.number()),
+		graceMinutes: v.optional(v.number()),
 	},
 	handler: async (ctx, args) => {
 		const route = await ctx.db.get(args.routeId);
@@ -80,7 +104,12 @@ export const update = mutation({
 			throw new Error("Route not found.");
 		}
 
-		const patch: { name?: string; description?: string } = {};
+		const patch: {
+			name?: string;
+			description?: string;
+			estimatedMinutes?: number;
+			graceMinutes?: number;
+		} = {};
 
 		if (args.name !== undefined) {
 			patch.name = normalizeName(args.name);
@@ -88,6 +117,14 @@ export const update = mutation({
 
 		if (args.description !== undefined) {
 			patch.description = normalizeDescription(args.description);
+		}
+
+		if (args.estimatedMinutes !== undefined) {
+			patch.estimatedMinutes = normalizeMinutes(args.estimatedMinutes);
+		}
+
+		if (args.graceMinutes !== undefined) {
+			patch.graceMinutes = normalizeMinutes(args.graceMinutes);
 		}
 
 		if (Object.keys(patch).length === 0) {

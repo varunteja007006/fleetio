@@ -137,6 +137,22 @@ export const remove = mutation({
 			throw new Error("Assignment not found");
 		}
 
+		const runningRuns = await ctx.db
+			.query("routeRuns")
+			.withIndex("by_driverId", (q) => q.eq("driverId", assignment.driverId))
+			.take(100);
+
+		await Promise.all(
+			runningRuns
+				.filter((r) => r.status === "running")
+				.map((r) =>
+					ctx.db.patch(r._id, {
+						status: "cancelled",
+						completedAt: Date.now(),
+					}),
+				),
+		);
+
 		await ctx.db.delete(args.assignmentId);
 		return args.assignmentId;
 	},

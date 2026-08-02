@@ -100,6 +100,63 @@ export const sendPushForAlert = internalAction({
 	},
 });
 
+export const sendAutoCloseNotification = internalAction({
+	args: {
+		routeRunId: v.id("routeRuns"),
+	},
+	handler: async (ctx, args) => {
+		const routeRun = await ctx.runQuery(
+			internal.pushNotifications.getRouteRunById,
+			{ routeRunId: args.routeRunId },
+		);
+		if (!routeRun) return;
+
+		const route = await ctx.runQuery(internal.pushNotifications.getRouteById, {
+			routeId: routeRun.routeId,
+		});
+		const routeName = route?.name ?? "Unknown route";
+
+		const driverProfile = await ctx.runQuery(
+			internal.pushNotifications.getProfileById,
+			{ profileId: routeRun.driverId },
+		);
+
+		const pushTokens: string[] = [];
+		if (driverProfile?.pushToken) {
+			pushTokens.push(driverProfile.pushToken);
+		}
+
+		const managers = await ctx.runQuery(
+			internal.pushNotifications.getManagerProfiles,
+			{},
+		);
+		for (const m of managers) {
+			if (m.pushToken) {
+				pushTokens.push(m.pushToken);
+			}
+		}
+
+		if (pushTokens.length === 0) return;
+
+		await fetch(EXPO_PUSH_API, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				to: pushTokens,
+				title: `Route auto-closed: ${routeName}`,
+				body: "This route run was auto-closed after exceeding its estimated completion time.",
+				data: {
+					type: "auto_closed",
+					routeRunId: args.routeRunId,
+					routeName,
+				},
+			}),
+		});
+	},
+});
+
 export const notifyForEvent = internalAction({
 	args: {
 		eventId: v.id("events"),

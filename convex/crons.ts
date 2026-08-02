@@ -8,7 +8,51 @@ crons.interval("check for delays", { minutes: 5 }, internal.crons.checkForDelays
 
 crons.interval("sync vehicle locations", { minutes: 5 }, internal.sync.pollVehicles, {});
 
+crons.interval("auto close abandoned runs", { hours: 1 }, internal.crons.autoCloseAbandonedRuns, {});
+
 export default crons;
+
+export const autoCloseAbandonedRuns = internalMutation({
+	args: {},
+	handler: async (ctx) => {
+		const now = Date.now();
+
+		const activeRuns = await ctx.db
+			.query("routeRuns")
+			.withIndex("by_status", (q) => q.eq("status", "running"))
+			.take(1000);
+
+		for (const run of activeRuns) {
+			if (run.estimatedDeadlineAt === undefined || now <= run.estimatedDeadlineAt) {
+				continue;
+			}
+
+			const visits = await ctx.db
+				.query("checkpointVisits")
+				.withIndex("by_routeRunId", (q) => q.eq("routeRunId", run._id))
+				.take(1000);
+
+			if (visits.length > 0) {
+				await Promise.all(
+					visits
+						.filter((visit) => visit.status === "pending")
+						.map((visit) => ctx.db.patch(visit._id, { status: "skipped" })),
+				);
+			}
+
+			await ctx.db.patch(run._id, {
+				status: "auto_closed",
+				completedAt: now,
+			});
+
+			await ctx.scheduler.runAfter(
+				0,
+				internal.pushNotifications.sendAutoCloseNotification,
+				{ routeRunId: run._id },
+			);
+		}
+	},
+});
 
 export const checkForDelays = internalMutation({
 	args: {},

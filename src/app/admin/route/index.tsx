@@ -20,6 +20,18 @@ import { useAppForm } from "~/components/forms/hooks";
 const createRouteSchema = z.object({
 	name: z.string().min(1, "Route name is required"),
 	description: z.string(),
+	estimatedMinutes: z
+		.string()
+		.refine(
+			(val) => val === "" || (!isNaN(Number(val)) && Number(val) >= 0),
+			"Must be 0 or more minutes",
+		),
+	graceMinutes: z
+		.string()
+		.refine(
+			(val) => val === "" || (!isNaN(Number(val)) && Number(val) > 0),
+			"Must be more than 0 minutes",
+		),
 });
 
 export default function RouteAdminListScreen() {
@@ -37,16 +49,26 @@ export default function RouteAdminListScreen() {
 		defaultValues: {
 			name: "",
 			description: "",
+			estimatedMinutes: "",
+			graceMinutes: "",
 		},
 		validators: { onSubmit: createRouteSchema },
 		onSubmit: async ({ value }) => {
 			setIsSubmitting(true);
 			try {
 				const description = value.description.trim();
+				const estimatedMinutes = value.estimatedMinutes
+					? Number(value.estimatedMinutes)
+					: undefined;
+				const graceMinutes = value.graceMinutes
+					? Number(value.graceMinutes)
+					: undefined;
 
 				await createRoute({
 					name: value.name,
 					description: description ? description : undefined,
+					estimatedMinutes,
+					graceMinutes,
 				});
 
 				form.reset();
@@ -126,6 +148,31 @@ export default function RouteAdminListScreen() {
 							/>
 						)}
 					</form.AppField>
+
+					<View className="mt-3">
+						<form.AppField name="estimatedMinutes">
+							{(field) => (
+								<field.Input
+									label="Estimated time (minutes)"
+									placeholder="Eg: 600 (10 hrs) - optional"
+									keyboardType="numeric"
+									editable={!isSubmitting}
+								/>
+							)}
+						</form.AppField>
+					</View>
+					<View className="mt-3">
+						<form.AppField name="graceMinutes">
+							{(field) => (
+								<field.Input
+									label="Grace period (minutes)"
+									placeholder="Extra time before auto-close - optional"
+									keyboardType="numeric"
+									editable={!isSubmitting}
+								/>
+							)}
+						</form.AppField>
+					</View>
 
 					<Pressable
 						onPress={async () => form.handleSubmit()}

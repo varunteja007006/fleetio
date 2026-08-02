@@ -22,6 +22,18 @@ import { LocationPicker } from "~/components/maps/location-picker";
 const updateRouteSchema = z.object({
 	name: z.string().min(1, "Route name is required"),
 	description: z.string(),
+	estimatedMinutes: z
+		.string()
+		.refine(
+			(val) => val === "" || (!isNaN(Number(val)) && Number(val) >= 0),
+			"Must be 0 or more minutes",
+		),
+	graceMinutes: z
+		.string()
+		.refine(
+			(val) => val === "" || (!isNaN(Number(val)) && Number(val) > 0),
+			"Must be more than 0 minutes",
+		),
 });
 
 export default function RouteAdminDetailScreen() {
@@ -69,6 +81,8 @@ export default function RouteAdminDetailScreen() {
 		defaultValues: {
 			name: "",
 			description: "",
+			estimatedMinutes: "",
+			graceMinutes: "",
 		},
 		validators: { onSubmit: updateRouteSchema },
 		onSubmit: async ({ value }) => {
@@ -79,11 +93,19 @@ export default function RouteAdminDetailScreen() {
 			setIsSaving(true);
 			try {
 				const description = value.description.trim();
+				const estimatedMinutes = value.estimatedMinutes
+					? Number(value.estimatedMinutes)
+					: undefined;
+				const graceMinutes = value.graceMinutes
+					? Number(value.graceMinutes)
+					: undefined;
 
 				await updateRoute({
 					routeId,
 					name: value.name,
 					description: description ? description : undefined,
+					estimatedMinutes,
+					graceMinutes,
 				});
 
 				Alert.alert("Route updated", "Route details were saved.");
@@ -105,6 +127,8 @@ export default function RouteAdminDetailScreen() {
 
 		form.setFieldValue("name", route.name);
 		form.setFieldValue("description", route.description ?? "");
+		form.setFieldValue("estimatedMinutes", route.estimatedMinutes?.toString() ?? "");
+		form.setFieldValue("graceMinutes", route.graceMinutes?.toString() ?? "");
 	}, [form, route]);
 
 	const handleDelete = () => {
@@ -340,6 +364,31 @@ export default function RouteAdminDetailScreen() {
 							/>
 						)}
 					</form.AppField>
+
+					<View className="mt-3">
+						<form.AppField name="estimatedMinutes">
+							{(field) => (
+								<field.Input
+									label="Estimated time (minutes)"
+									placeholder="Eg: 600 (10 hrs)"
+									keyboardType="numeric"
+									editable={!isSaving && !isDeleting}
+								/>
+							)}
+						</form.AppField>
+					</View>
+					<View className="mt-3">
+						<form.AppField name="graceMinutes">
+							{(field) => (
+								<field.Input
+									label="Grace period (minutes)"
+									placeholder="Extra time before auto-close"
+									keyboardType="numeric"
+									editable={!isSaving && !isDeleting}
+								/>
+							)}
+						</form.AppField>
+					</View>
 
 					<Pressable
 						onPress={async () => form.handleSubmit()}

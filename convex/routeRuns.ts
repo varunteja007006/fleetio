@@ -1,3 +1,4 @@
+import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { authComponent } from "./auth";
@@ -30,23 +31,52 @@ export const startRouteRun = mutation({
 			throw new Error("Route not found");
 		}
 
-		const existingActiveRun = await ctx.db
+		const existingRuns = await ctx.db
 			.query("routeRuns")
 			.withIndex("by_driverId", (q) => q.eq("driverId", profile._id))
 			.take(100);
 
-		const hasActive = existingActiveRun.find((r) => r.status === "running");
+		const runningRuns = existingRuns.filter((r) => r.status === "running");
+
+		let hasActive = false;
+		for (const run of runningRuns) {
+			const runRoute = await ctx.db.get(run.routeId);
+			const assignments = await ctx.db
+				.query("routeAssignments")
+				.withIndex("by_driverId", (q) => q.eq("driverId", profile._id))
+				.take(100);
+			const isStillAssigned =
+				runRoute && !runRoute.isDeleted &&
+				assignments.some((a) => a.routeId === run.routeId && a.active);
+
+			if (!isStillAssigned) {
+				await ctx.db.patch(run._id, {
+					status: "cancelled",
+					completedAt: Date.now(),
+				});
+			} else {
+				hasActive = true;
+			}
+		}
+
 		if (hasActive) {
 			throw new Error("You already have an active route run");
 		}
 
 		const now = Date.now();
 
+		const estimatedDeadlineAt =
+			route.estimatedMinutes !== undefined
+				? now +
+					(route.estimatedMinutes + (route.graceMinutes ?? 0)) * 60 * 1000
+				: undefined;
+
 		const routeRunId = await ctx.db.insert("routeRuns", {
 			routeId: args.routeId,
 			driverId: profile._id,
 			startedAt: now,
 			status: "running",
+			estimatedDeadlineAt,
 		});
 
 		const routeCheckpoints = (await ctx.db
@@ -102,6 +132,19 @@ export const completeRouteRun = mutation({
 
 		if (routeRun.status !== "running") {
 			throw new Error("Route run is not active");
+		}
+
+		const visits = await ctx.db
+			.query("checkpointVisits")
+			.withIndex("by_routeRunId", (q) => q.eq("routeRunId", args.routeRunId))
+			.take(1000);
+
+		if (visits.length > 0) {
+			await Promise.all(
+				visits
+					.filter((visit) => visit.status === "pending")
+					.map((visit) => ctx.db.patch(visit._id, { status: "skipped" })),
+			);
 		}
 
 		await ctx.db.patch(args.routeRunId, {
@@ -298,6 +341,45 @@ export const listMyRuns = query({
 		);
 
 		return enriched.filter((r) => r.route && !r.route.isDeleted);
+	},
+});
+
+export const listMyRunsPaginated = query({
+	args: {
+		paginationOpts: paginationOptsValidator,
+	},
+	handler: async (ctx, args) => {
+		const user = await authComponent.safeGetAuthUser(ctx);
+		if (!user) {
+			return { page: [], continueCursor: "", isDone: true };
+		}
+
+		const profile = await ctx.db
+			.query("profiles")
+			.withIndex("by_auth_user", (q) => q.eq("authUserId", user._id))
+			.first();
+
+		if (!profile) {
+			return { page: [], continueCursor: "", isDone: true };
+		}
+
+		const routeRuns = await ctx.db
+			.query("routeRuns")
+			.withIndex("by_driverId", (q) => q.eq("driverId", profile._id))
+			.order("desc")
+			.paginate(args.paginationOpts);
+
+		const enriched = await Promise.all(
+			routeRuns.page.map(async (r) => {
+				const route = await ctx.db.get(r.routeId);
+				return { ...r, route };
+			}),
+		);
+
+		return {
+			...routeRuns,
+			page: enriched.filter((r) => r.route && !r.route.isDeleted),
+		};
 	},
 });
 

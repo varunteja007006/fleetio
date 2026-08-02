@@ -107,6 +107,9 @@ export default defineSchema({
 		name: v.string(),
 		description: v.optional(v.string()),
 
+		estimatedMinutes: v.optional(v.number()),
+		graceMinutes: v.optional(v.number()),
+
 		isDeleted: v.boolean(),
 	}).index("byName", ["name"])
 		.index("by_isDeleted", ["isDeleted"]),
@@ -153,7 +156,10 @@ export default defineSchema({
 			v.literal("completed"),
 			v.literal("delayed"),
 			v.literal("cancelled"),
+			v.literal("auto_closed"),
 		),
+
+		estimatedDeadlineAt: v.optional(v.number()),
 	}).index("by_driverId", ["driverId"])
 		.index("by_status", ["status"]),
 
