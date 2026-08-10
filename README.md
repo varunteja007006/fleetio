@@ -2,6 +2,39 @@
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
+## Building & installing the APK
+
+### Build
+
+Run `build-apk.sh` from the project root, choosing an environment:
+
+```bash
+./build-apk.sh dev    # uses .env.local       → fleetio.dev.apk
+./build-apk.sh prod   # uses .env.production  → fleetio.prod.apk
+```
+
+Notes:
+- `prod` builds **deploy the Convex backend first** (`npx convex deploy` to the production deployment), so the APK ships with the latest functions/schema. Dev builds skip this — they talk to the local dev server.
+- The env file is baked into the JS bundle (`EXPO_PUBLIC_CONVEX_URL`, ...), so a rebuild is required to switch environments.
+- The `gradlew` daemon is stopped before building so the new env vars aren't frozen out by a stale daemon.
+- Output APK lands in the repo root as `fleetio.<mode>.apk`.
+
+### Install
+
+Plug in your phone with USB debugging enabled ([enable it in Developer Options](https://developer.android.com/studio/run/device#developer-device-options)), then:
+
+```bash
+adb devices          # confirm the phone is listed (not "unauthorized")
+adb install fleetio.prod.apk
+```
+
+Useful flags:
+- `-r` reinstall and keep app data: `adb install -r fleetio.prod.apk`
+- `-d` allow downgrade (pair with `-r`): `adb install -rd fleetio.prod.apk`
+- `-g` grant all runtime permissions at install time
+
+If `adb devices` shows `unauthorized`, accept the RSA debug prompt on your phone.
+
 ## Get started
 
 1. Install dependencies
