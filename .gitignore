@@ -43,3 +43,4 @@ example
 /android
 .env.production
 fleetio.apk
+fleetio.dev.apk

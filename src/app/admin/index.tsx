@@ -24,45 +24,46 @@ const AdminDashboard = () => {
 		accent: string;
 		href: Href;
 	}[] = [
-		{
-			title: "Manage Routes",
-			description: "Create, edit, and archive route table entries for your fleet.",
-			accent: "bg-blue-500",
-			href: "/admin/route",
-		},
-		{
-			title: "Manage Vehicles",
-			description: "Add fleet vehicles and configure GPS provider connections.",
-			accent: "bg-emerald-500",
-			href: "/admin/vehicles",
-		},
+		// {
+		// 	title: "Manage Routes",
+		// 	description: "Create, edit, and archive route table entries for your fleet.",
+		// 	accent: "bg-blue-500",
+		// 	href: "/admin/route",
+		// },
+		// {
+		// 	title: "Manage Vehicles",
+		// 	description: "Add fleet vehicles and configure GPS provider connections.",
+		// 	accent: "bg-emerald-500",
+		// 	href: "/admin/vehicles",
+		// },
 		{
 			title: "Live Locations",
 			description: "View live vehicle positions grouped by vendor.",
 			accent: "bg-lime-500",
 			href: "/dashboard/live-locations",
 		},
-		{
-			title: "Geofences",
-			description: "Create circular geofence zones with configurable radius.",
-			accent: "bg-violet-500",
-			href: "/admin/geofences",
-		},
+		// {
+		// 	title: "Geofences",
+		// 	description: "Create circular geofence zones with configurable radius.",
+		// 	accent: "bg-violet-500",
+		// 	href: "/admin/geofences",
+		// },
 		{
 			title: "Manage Users",
 			description: "Approve, reject, and manage roles for drivers and staff.",
 			accent: "bg-amber-500",
 			href: "/admin/users",
 		},
-		{
-			title: "Route Assignments",
-			description: "Assign routes to drivers and manage existing assignments.",
-			accent: "bg-cyan-500",
-			href: "/admin/assignments",
-		},
+		// {
+		// 	title: "Route Assignments",
+		// 	description: "Assign routes to drivers and manage existing assignments.",
+		// 	accent: "bg-cyan-500",
+		// 	href: "/admin/assignments",
+		// },
 		{
 			title: "View Requests",
-			description: "Review submitted feedback, feature requests, and bug reports.",
+			description:
+				"Review submitted feedback, feature requests, and bug reports.",
 			accent: "bg-rose-500",
 			href: "/admin/requests",
 		},
@@ -75,7 +76,9 @@ const AdminDashboard = () => {
 				className="px-6 py-6"
 				contentContainerStyle={{ paddingBottom: 40 }}
 			>
-				<Text className="text-foreground text-2xl font-bold">Admin Dashboard</Text>
+				<Text className="text-foreground text-2xl font-bold">
+					Admin Dashboard
+				</Text>
 				<Text className="text-muted-foreground mt-1 text-sm">
 					Overview of your fleet management system.
 				</Text>
