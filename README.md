@@ -1,6 +1,120 @@
-# Welcome to your Expo app 👋
+# Fleetio — Fleet Management App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Expo (mobile + web) fleet management app with Convex backend.
+
+## Fresh Machine Setup (Linux)
+
+### 1. System packages
+
+```bash
+# Fedora
+sudo dnf install java-17-openjdk-devel git curl unzip
+
+# Ubuntu/Debian
+sudo apt update && sudo apt install openjdk-17-jdk git curl unzip
+
+# Arch
+sudo pacman -S jdk17-openjdk git curl unzip
+```
+
+Verify Java 17:
+```bash
+java -version
+javac -version
+```
+
+### 2. Node.js 22 (via nvm)
+
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+# restart terminal
+nvm install 22
+nvm use 22
+nvm alias default 22
+```
+
+Verify:
+```bash
+node -v
+npm -v
+```
+
+### 3. pnpm
+
+```bash
+corepack enable
+corepack prepare pnpm@latest --activate
+pnpm -v
+```
+
+### 4. Android SDK
+
+Install [Android command-line tools](https://developer.android.com/studio#command-tools) to `~/android-sdk`:
+
+```bash
+mkdir -p ~/android-sdk/cmdline-tools
+# download + extract cmdline-tools to ~/android-sdk/cmdline-tools/latest
+# download + extract platform-tools to ~/android-sdk/platform-tools
+```
+
+Configure environment (add to `~/.bashrc` or `~/.zshrc`):
+
+```bash
+export ANDROID_HOME="$HOME/android-sdk"
+export ANDROID_SDK_ROOT="$ANDROID_HOME"
+export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH"
+```
+
+Reload shell and verify:
+```bash
+source ~/.bashrc
+which sdkmanager
+which adb
+```
+
+Install required SDK packages (adjust versions to your project's `android/` config):
+
+```bash
+sdkmanager "platforms;android-34" "build-tools;34.0.0" "ndk;26.3.11579264"
+yes | sdkmanager --licenses
+```
+
+### 5. Clone & install
+
+```bash
+git clone <your-repo-url>
+cd fleetio
+pnpm install
+```
+
+### 6. Environment files
+
+Create from your secrets source (not committed to Git):
+```bash
+# Development
+cp .env.local.example .env.local   # or create manually
+
+# Production
+cp .env.production.example .env.production  # or create manually
+```
+
+Required variables: `EXPO_PUBLIC_CONVEX_URL`, `EXPO_PUBLIC_CONVEX_SITE_URL`, `BETTER_AUTH_SECRET`, `EMAIL_DOMAIN`
+
+### 7. Convex (development)
+
+```bash
+npx convex dev
+```
+
+### 8. Connect device
+
+```bash
+adb devices
+# Should show: XXXXXXXX    device
+# If "unauthorized", accept RSA prompt on phone
+```
+
+---
 
 ## Building & installing the APK
 

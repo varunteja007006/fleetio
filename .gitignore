@@ -44,3 +44,4 @@ example
 .env.production
 fleetio.apk
 fleetio.dev.apk
+fleetio.prod.apk
